@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스토리 빌더 | Toss Style</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'],
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Pretendard', '-apple-system', 'sans-serif'] },
+                    colors: {
+                        toss: {
+                            blue: '#3182f6', blueHover: '#1b64da', blueLight: '#e8f3ff',
+                            bg: '#f2f4f6', card: '#ffffff', text: '#191f28', textSec: '#4e5968', textMuted: '#8b95a1', border: '#e5e8eb',
+                            darkBg: '#101318', darkCard: '#1c212a', darkText: '#f9fafb', darkTextSec: '#b0b8c1', darkBorder: '#333d4b',
+                            red: '#f04452', redLight: '#fee9eb', green: '#31ce66'
+                        }
+                    },
+                    boxShadow: { 
+                        'toss-sm': '0 2px 8px rgba(0,0,0,0.04)', 
+                        'toss-md': '0 8px 20px rgba(0,0,0,0.06)', 
+                        'toss-lg': '0 16px 32px rgba(0,0,0,0.08)' 
+                    }
+                }
+            }
+        };
+    </script>
+    
+    <style>
+        /* CSS Variables */
+        :root {
+            --bg-base: #f2f4f6; --bg-surf: #ffffff; --txt-pri: #191f28; --txt-sec: #4e5968; --txt-mut: #8b95a1;
+            --bd-col: #e5e8eb; --pri: #3182f6; --dan: #f04452; --suc: #31ce66; --war: #f5b014;
+            --sh-pan: 0 10px 30px rgba(0,0,0,0.08); --sh-crd: 0 4px 12px rgba(0,0,0,0.05); --grd: rgba(0,0,0,0.05);
+            --in-bg: #f2f4f6; --in-fbg: #ffffff; --hlp-bg: #f9fafb;
+        }
+        html.dark {
+            --bg-base: #101318; --bg-surf: #1c212a; --txt-pri: #f9fafb; --txt-sec: #b0b8c1; --txt-mut: #6b7684;
+            --bd-col: #333d4b; --pri: #3182f6; --dan: #f04452; --suc: #31ce66; --war: #f5b014;
+            --sh-pan: 0 10px 30px rgba(0,0,0,0.5); --sh-crd: 0 4px 12px rgba(0,0,0,0.4); --grd: rgba(255,255,255,0.04);
+            --in-bg: #2b313d; --in-fbg: #1c212a; --hlp-bg: #202632;
+        }
+        
+        /* Base & Scrollbar */
+        body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg-base); color: var(--txt-pri); transition: background 0.3s, color 0.3s; }
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bd-col); border-radius: 4px; border: 2px solid var(--bg-surf); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--txt-mut); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        
+        /* Shared Components */
+        .ts-in { background: var(--in-bg); border: 1px solid transparent; color: var(--txt-pri); padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 500; outline: none; transition: all 0.2s; width: 100%; }
+        .ts-in:focus { border-color: var(--pri); background: var(--in-fbg); box-shadow: 0 0 0 3px rgba(49,130,246,0.15); }
+        
+        .ts-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; background: var(--in-bg); color: var(--txt-sec); }
+        .ts-btn:hover { background: var(--bd-col); color: var(--txt-pri); }
+        .ts-btn:active { transform: scale(0.96); }
+        .ts-btn-pri { background: var(--pri); color: #fff; }
+        .ts-btn-pri:hover { background: #1b64da; color: #fff; }
+        .ts-btn-dan { color: var(--dan); background: rgba(240,68,82,0.1); }
+        .ts-btn-dan:hover { background: rgba(240,68,82,0.15); }
+        
+        .pan-grp { pointer-events: auto; background: var(--bg-surf); border: 1px solid var(--bd-col); border-radius: 14px; box-shadow: var(--sh-pan); padding: 6px 8px; display: flex; align-items: center; gap: 4px; transition: all 0.3s; }
+        .pan-div { width: 1px; height: 16px; background: var(--bd-col); margin: 0 4px; }
+        
+        /* Layout */
+        .app-con { width: 100%; height: calc(100vh - 3.5rem); position: relative; display: flex; user-select: none; }
+        .cv-vp { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; cursor: default; }
+        .cv-ly { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; }
+        .grd-bg { position: absolute; width: 200vw; height: 200vh; left: -50vw; top: -50vh; background-image: radial-gradient(var(--grd) 1.5px, transparent 1.5px); background-size: 24px 24px; pointer-events: none; transform-origin: center; }
+        
+        /* Connection Lines */
+        .c-ed-ph { fill: none; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.3s, filter 0.2s; pointer-events: stroke; }
+        .edge-group { cursor: pointer; }
+        .edge-group:hover .c-ed-ph { stroke-width: 5; }
+        .c-ed-ph.sel { stroke-width: 4.5; filter: drop-shadow(0 0 8px var(--pri)); }
+        
+        /* Node & Card Styling Shared */
+        .c-nd, .nv-card { position: absolute; background: var(--bg-surf); border: 1px solid var(--bd-col); border-radius: 16px; box-shadow: var(--sh-crd); pointer-events: auto; display: flex; flex-direction: column; cursor: pointer; transform-origin: 0 0; will-change: transform, z-index; transition: border-color 0.2s, box-shadow 0.2s; z-index: 10; overflow: hidden; }
+        .c-nd:hover, .nv-card:hover { border-color: var(--txt-mut); box-shadow: var(--sh-pan); z-index: 20; }
+        .c-nd.sel, .nv-card.sel { border-color: var(--pri); box-shadow: 0 0 0 2px var(--pri), var(--sh-pan); z-index: 30; }
+        
+        /* Node Delete Button (Shared) */
+        .c-nd .node-delete-btn, .nv-card .node-delete-btn { position: absolute; top: -10px; right: -10px; background: var(--dan); color: white; border-radius: 50%; width: 26px; height: 26px; display: none; justify-content: center; align-items: center; cursor: pointer; z-index: 35; border: 2px solid var(--bg-surf); transition: transform 0.2s; }
+        .c-nd:hover .node-delete-btn, .nv-card:hover .node-delete-btn { display: flex; }
+        .c-nd .node-delete-btn:hover, .nv-card .node-delete-btn:hover { transform: scale(1.1); }
+        
+        /* Character Mapper Specific */
+        .c-nd.dim { opacity: 0.3; pointer-events: none; z-index: 5; filter: grayscale(80%); }
+        .c-nd-hd { padding: 18px; display: flex; align-items: center; gap: 14px; background: var(--hlp-bg); border-bottom: 1px solid var(--bd-col); }
+        .c-avt { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: var(--bg-surf); border: 2.5px solid var(--bd-col); font-size: 26px; flex-shrink: 0; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .c-pt { position: absolute; width: 16px; height: 16px; background: var(--bg-surf); border: 3px solid var(--pri); border-radius: 50%; z-index: 40; opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: crosshair; }
+        .c-nd:hover .c-pt, .c-pt.act { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .c-pt:hover { background: var(--pri); transform: scale(1.4); }
+        .c-pt::after { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; border-radius: 50%; } 
+        
+        /* Novel Node Specific */
+        .nv-card { min-width: 260px; min-height: 120px; overflow: visible; }
+        .nv-card.hov { border-color: var(--suc); box-shadow: 0 0 0 3px rgba(49,206,102,0.3); transform: scale(1.02); z-index: 40; }
+        .nv-card.orphan { border-color: var(--dan); border-style: dashed; }
+        .nv-hd { padding: 14px 18px; border-radius: 16px 16px 0 0; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: grab; color: var(--txt-pri); font-size: 14px; border-bottom: 1px solid var(--bd-col); background: var(--hlp-bg); }
+        .nv-bd { padding: 14px 18px; font-size: 13px; color: var(--txt-sec); flex: 1; display: flex; flex-direction: column; gap: 8px; background: var(--bg-surf); border-radius: 0 0 16px 16px; }
+        .node-dialogue-text { flex: 1; overflow-y: auto; margin-bottom: 8px; min-height: 20px; line-height: 1.5; }
+        .nv-chc { display: flex; justify-content: space-between; align-items: center; background: var(--in-bg); margin-top: 8px; padding: 10px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600; border: 1px solid transparent; transition: background 0.2s; position: relative;}
+        .nv-chc:hover { background: var(--bd-col); }
+        .nv-pt { width: 14px; height: 14px; background: var(--bd-col); border-radius: 50%; cursor: crosshair; transition: all 0.2s; right: -7px; position: absolute; top: 50%; margin-top: -7px; box-shadow: 0 0 0 3px var(--bg-surf); }
+        .nv-pt::after { content: ''; position: absolute; top: -8px; left: -8px; right: -8px; bottom: -8px; border-radius: 50%; } 
+        .nv-pt:hover { background: var(--pri); transform: scale(1.3); }
+        .nv-pt.con { background: var(--suc); border-color: var(--suc); }
+        .nv-pt.err { background: var(--dan); border-color: var(--dan); }
+        .nv-in-pt { position: absolute; top: 16px; left: -8px; width: 16px; height: 16px; background: var(--pri); border-radius: 50%; z-index: 25; box-shadow: 0 0 0 3px var(--bg-surf); }
+        
+        /* Animations */
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="flex flex-col">
+    <!-- Global Navigation -->
+    <nav class="h-14 bg-toss-card dark:bg-toss-darkCard border-b border-toss-border dark:border-toss-darkBorder flex items-center px-6 justify-between z-[9999] relative shrink-0 transition-colors shadow-sm">
+        <div class="font-bold text-[18px] text-toss-text dark:text-toss-darkText flex items-center gap-2.5 tracking-tight">
+            <div class="w-7 h-7 bg-toss-blue rounded-[10px] flex items-center justify-center text-white text-[15px] shadow-md">
+                <i class="ph ph-planet"></i>
+            </div>
+            스토리 빌더
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex gap-1 bg-toss-bg dark:bg-toss-darkBg p-1.5 rounded-xl border border-toss-border dark:border-toss-darkBorder">
+                <button id="tab-char" class="px-5 py-1.5 rounded-lg bg-[var(--bg-surf)] text-[var(--pri)] font-bold shadow-sm transition-all text-[13.5px]" onclick="window.swTab('char')">캐릭터 관계도</button>
+                <button id="tab-novel" class="px-5 py-1.5 rounded-lg text-[var(--txt-sec)] hover:bg-[var(--bg-surf)] font-semibold transition-all text-[13.5px]" onclick="window.swTab('novel')">스토리 분기</button>
+            </div>
+            <div class="w-px h-5 bg-toss-border dark:bg-toss-darkBorder mx-1"></div>
+            <button onclick="window.showHelp()" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-toss-bg dark:hover:bg-toss-darkBg text-toss-textSec dark:text-toss-darkTextSec transition-colors" title="도움말">
+                <i class="ph ph-question text-[22px]"></i>
+            </button>
+            <button onclick="window.tgTheme()" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-toss-bg dark:hover:bg-toss-darkBg text-toss-textSec dark:text-toss-darkTextSec transition-colors" title="테마 변경">
+                <i class="ph ph-moon text-[22px]" id="gb-theme-ic"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- App 1: Character Mapper Studio             -->
+    <!-- ========================================== -->
+    <div id="c-app" class="app-con">
+        <header class="absolute top-4 left-5 right-5 z-50 flex justify-between pointer-events-none">
+            <div class="pan-grp animate-pop">
+                <button class="ts-btn" onclick="window.cA.undo()" title="실행 취소 (Ctrl+Z)"><i class="ph ph-arrow-u-up-left text-[20px]"></i></button>
+                <button class="ts-btn" onclick="window.cA.redo()" title="다시 실행 (Ctrl+Y)"><i class="ph ph-arrow-u-up-right text-[20px]"></i></button>
+                <div class="pan-div"></div>
+                <button class="ts-btn" onclick="window.cA.zoomIn()" title="확대"><i class="ph ph-magnifying-glass-plus text-[19px]"></i></button>
+                <button class="ts-btn" onclick="window.cA.zoomOut()" title="축소"><i class="ph ph-magnifying-glass-minus text-[19px]"></i></button>
+                <div class="pan-div"></div>
+                <button class="ts-btn ts-btn-pri" onclick="window.cA.add()"><i class="ph ph-user-plus text-[19px]"></i> 인물 추가</button>
+            </div>
+            <div class="pan-grp animate-pop" style="animation-delay: 0.1s;">
+                <div class="flex items-center gap-2 bg-[var(--in-bg)] px-3 py-1.5 rounded-xl">
+                    <i class="ph ph-magnifying-glass text-[var(--txt-mut)] text-[19px]"></i>
+                    <input type="text" id="c-sch" class="bg-transparent border-none outline-none text-[13.5px] w-[120px] font-medium text-[var(--txt-pri)] focus:w-[160px] transition-all" placeholder="검색..." oninput="window.cA.sch()">
+                </div>
+                <div class="pan-div"></div>
+                <button class="ts-btn" onclick="window.cA.tgTerr()" style="color:var(--pri)" id="c-btn-ter" title="세력 영토 표시"><i class="ph ph-map-trifold text-[20px]"></i></button>
+                <button class="ts-btn" onclick="window.cA.exp()" title="저장 (JSON)"><i class="ph ph-download-simple text-[20px]"></i></button>
+                <button class="ts-btn" onclick="document.getElementById('c-imp').click()" title="불러오기"><i class="ph ph-upload-simple text-[20px]"></i></button>
+                <input type="file" id="c-imp" class="hidden" accept=".json" onchange="window.cA.imp(event)">
+            </div>
+        </header>
+
+        <div id="c-vp" class="cv-vp">
+            <div id="c-gbg" class="grd-bg"></div>
+            <div id="c-ly" class="cv-ly">
+                <svg id="c-ed-ly" class="absolute top-0 left-0 w-full h-full overflow-visible pointer-events-none z-0">
+                    <defs></defs><g id="c-ter-ly"></g>
+                </svg>
+                <div id="c-nd-ly" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10"></div>
+            </div>
+            <div id="c-sel-box" class="absolute bg-[rgba(49,130,246,.1)] border-[1.5px] border-[var(--pri)] rounded-lg pointer-events-none hidden z-[999]"></div>
+        </div>
+
+        <aside id="c-ins" class="absolute top-[80px] right-5 w-[360px] z-50 bg-[var(--bg-surf)] border border-[var(--bd-col)] rounded-2xl shadow-[var(--sh-pan)] flex flex-col max-h-[calc(100vh-130px)] overflow-y-auto transform translate-x-[120%] transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]">
+            <div class="flex justify-between items-center p-5 border-b border-[var(--bd-col)] bg-[var(--bg-surf)] sticky top-0 z-10">
+                <span class="font-bold text-[15px] flex items-center gap-2"><i class="ph ph-faders text-[var(--pri)] text-[20px]"></i> 속성 에디터</span>
+                <button class="ts-btn p-1.5 rounded-full hover:bg-[var(--dan)] hover:text-white transition-colors" onclick="window.cA.clsIns()"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div id="c-ins-emp" class="flex flex-col items-center justify-center py-24 text-[var(--txt-mut)] text-center">
+                <i class="ph ph-cursor-click text-[50px] mb-4 opacity-30"></i>
+                <p class="text-[14px] font-medium leading-relaxed">캔버스에서 캐릭터나<br>연결선을 선택해주세요.</p>
+            </div>
+
+            <!-- Node Editor -->
+            <div id="c-ins-nd" class="p-6 flex-col gap-5 hidden">
+                <div class="flex gap-4">
+                    <div class="flex flex-col gap-1.5 w-[76px]">
+                        <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">아바타</label>
+                        <input type="text" class="ts-in text-center text-3xl px-1 py-3" id="cp-avt" oninput="window.cA.updNd('avatar')">
+                    </div>
+                    <div class="flex flex-col gap-1.5 flex-1">
+                        <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">이름</label>
+                        <input type="text" class="ts-in py-4 font-bold text-[15px]" id="cp-nm" placeholder="인물 이름" oninput="window.cA.updNd('name')">
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex flex-col gap-1.5 flex-1">
+                        <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">진영 (소속)</label>
+                        <input type="text" class="ts-in" id="cp-grp" placeholder="예: 빛의 교단" oninput="window.cA.updNd('group')">
+                    </div>
+                    <div class="flex flex-col gap-1.5 w-[100px]">
+                        <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">크기</label>
+                        <div class="flex gap-2 items-center h-full bg-[var(--in-bg)] px-3 rounded-xl">
+                            <input type="range" id="cp-scl" min="0.5" max="2.5" step="0.1" value="1.0" oninput="document.getElementById('c-scl-v').innerText=parseFloat(this.value).toFixed(1)+'x'; window.cA.updNd('scale');" class="flex-1 accent-[var(--pri)] cursor-pointer">
+                            <span id="c-scl-v" class="text-[11px] font-bold w-[24px] text-right">1.0x</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">테마 컬러</label>
+                    <div class="flex gap-2 bg-[var(--in-bg)] p-1 rounded-xl border border-[var(--bd-col)]">
+                        <input type="color" id="cp-col" oninput="window.cA.updNd('color')" class="w-12 h-10 border-none rounded-[8px] cursor-pointer bg-transparent p-0">
+                        <button class="ts-btn flex-1 bg-transparent hover:bg-[var(--bg-surf)] shadow-sm font-bold" onclick="document.getElementById('cp-col').value=window.cA.rCol(); window.cA.updNd('color');"><i class="ph ph-dice-3 text-lg"></i> 랜덤 배정</button>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">설명</label>
+                    <textarea class="ts-in min-h-[100px] resize-y leading-relaxed" id="cp-dsc" placeholder="성격이나 특징을 요약하세요" oninput="window.cA.updNd('desc')"></textarea>
+                </div>
+                <button class="ts-btn ts-btn-dan w-full mt-2 py-3.5 text-[14px]" onclick="window.cA.delSel()"><i class="ph ph-trash text-lg"></i> 노드 삭제</button>
+            </div>
+
+            <!-- Edge Editor -->
+            <div id="c-ins-ed" class="p-6 flex-col gap-5 hidden">
+                <div class="flex flex-col gap-2">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">빠른 관계 설정</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="ts-btn text-[var(--suc)] bg-[#31ce661a] hover:bg-[#31ce6633]" onclick="window.cA.setEd('friend','우호/동맹','var(--suc)')">🤝 우호</button>
+                        <button class="ts-btn text-[var(--dan)] bg-[#f044521a] hover:bg-[#f0445233]" onclick="window.cA.setEd('hostile','적대','var(--dan)')">⚔️ 적대</button>
+                        <button class="ts-btn text-[var(--txt-pri)] bg-[var(--bd-col)] hover:bg-[var(--txt-mut)] hover:text-white" onclick="window.cA.setEd('neutral','일반 관계','var(--txt-mut)')">💬 중립</button>
+                        <button class="ts-btn text-[var(--war)] bg-[#f5b0141a] hover:bg-[#f5b01433]" onclick="window.cA.setEd('warning','갈등/의심','var(--war)')">❓ 의심</button>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5 mt-2">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">내 프리셋 (우클릭 삭제)</label>
+                    <div id="c-pre-ls" class="flex flex-wrap gap-2 min-h-[36px] items-center bg-[var(--in-bg)] p-2 rounded-xl border border-[var(--bd-col)]"></div>
+                </div>
+                <hr class="border-[var(--bd-col)] my-1">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">관계 텍스트</label>
+                    <input type="text" class="ts-in py-3 font-bold" id="cp-e-lbl" placeholder="관계 설명 (예: 스승과 제자)" oninput="window.cA.updEd('label')">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">스타일 & 방향</label>
+                    <div class="flex gap-2">
+                        <select class="ts-in flex-1 cursor-pointer" id="cp-e-sty" onchange="window.cA.updEd('style')">
+                            <option value="solid">➖ 실선 (확실함)</option>
+                            <option value="dashed">-- 점선 (암시/과거)</option>
+                        </select>
+                        <select class="ts-in flex-1 cursor-pointer" id="cp-e-bi" onchange="window.cA.updEd('bidi')">
+                            <option value="false">➡️ 일방향</option>
+                            <option value="true">↔️ 양방향</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11.5px] font-bold text-[var(--txt-sec)]">선 색상</label>
+                    <div class="flex gap-2 bg-[var(--in-bg)] p-1 rounded-xl border border-[var(--bd-col)]">
+                        <input type="color" id="cp-e-col" oninput="window.cA.updEd('color')" class="w-12 h-10 border-none rounded-[8px] cursor-pointer bg-transparent p-0">
+                        <button class="ts-btn flex-1 bg-transparent hover:bg-[var(--bg-surf)] shadow-sm font-bold" onclick="window.cA.svPre()"><i class="ph ph-floppy-disk text-lg"></i> 현재 설정 저장</button>
+                    </div>
+                </div>
+                <button class="ts-btn ts-btn-dan w-full mt-2 py-3.5 text-[14px]" onclick="window.cA.delSel()"><i class="ph ph-scissors text-lg"></i> 연결 끊기</button>
+            </div>
+        </aside>
+        
+        <div id="c-ctx" class="fixed bg-[var(--bg-surf)] border border-[var(--bd-col)] rounded-xl p-1.5 shadow-[var(--sh-pan)] z-[9999] min-w-[160px] hidden transform origin-top-left animate-pop">
+            <div class="flex items-center gap-2.5 px-3 py-2.5 text-[13.5px] font-semibold rounded-lg cursor-pointer hover:bg-[var(--in-bg)] transition-colors" onclick="window.cA.ctx('add')" id="cx-add"><i class="ph ph-user-plus text-[18px]"></i> 새 인물 추가</div>
+            <div class="h-px bg-[var(--bd-col)] my-1" id="cx-d1"></div>
+            <div class="flex items-center gap-2.5 px-3 py-2.5 text-[13.5px] font-semibold rounded-lg cursor-pointer hover:bg-[var(--in-bg)] transition-colors" onclick="window.cA.ctx('dup')" id="cx-dup"><i class="ph ph-copy text-[18px]"></i> 노드 복제</div>
+            <div class="h-px bg-[var(--bd-col)] my-1" id="cx-d2"></div>
+            <div class="flex items-center gap-2.5 px-3 py-2.5 text-[13.5px] font-semibold text-[var(--dan)] rounded-lg cursor-pointer hover:bg-[var(--dan)] hover:text-white transition-colors" onclick="window.cA.ctx('del')" id="cx-del"><i class="ph ph-trash text-[18px]"></i> 삭제</div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- App 2: Novel Story Node Editor             -->
+    <!-- ========================================== -->
+    <div id="n-app" class="app-con flex-col hidden bg-[var(--bg-base)]">
+        <header class="h-14 bg-[var(--bg-surf)] border-b border-[var(--bd-col)] flex items-center justify-end px-5 shrink-0 z-50">
+            <div class="flex items-center gap-2 animate-pop">
+                <button onclick="window.nA.zoomIn()" class="ts-btn py-2 px-3.5" title="확대"><i class="ph ph-magnifying-glass-plus text-[18px]"></i></button>
+                <button onclick="window.nA.zoomOut()" class="ts-btn py-2 px-3.5" title="축소"><i class="ph ph-magnifying-glass-minus text-[18px]"></i></button>
+                <div class="w-px h-5 bg-[var(--bd-col)] mx-1"></div>
+                <button onclick="window.nA.add()" class="ts-btn ts-btn-pri py-2 px-4"><i class="ph ph-plus text-[18px]"></i> 분기 추가</button>
+                <button onclick="window.nA.play()" class="ts-btn py-2 px-5 bg-[#e8f3ff] text-[#3182f6] dark:bg-[#3182f6]/20 hover:bg-[#d0e6ff] border border-[#3182f6]/20 font-bold"><i class="ph ph-play-circle text-[20px]"></i> 플레이</button>
+                <div class="w-px h-5 bg-[var(--bd-col)] mx-1"></div>
+                <button onclick="window.nA.tgMod('n-csv')" class="ts-btn py-2 px-4" title="엑셀용 CSV 추출"><i class="ph ph-file-csv text-[18px]"></i> 추출</button>
+                <button onclick="window.nA.exp()" class="ts-btn py-2 px-4" title="JSON 백업"><i class="ph ph-download-simple text-[18px]"></i> 백업</button>
+                <label class="ts-btn py-2 px-4 cursor-pointer m-0"><i class="ph ph-upload-simple text-[18px]"></i> 열기<input type="file" accept=".json, .csv" class="hidden" onchange="window.nA.imp(event)"></label>
+            </div>
+        </header>
+        
+        <main class="flex-1 flex overflow-hidden relative z-0">
+            <section class="flex-1 relative bg-[var(--bg-base)]" id="n-sec">
+                <div id="n-vp" class="cv-vp">
+                    <div id="n-ly" class="cv-ly" style="width:5000px;height:5000px">
+                        <div class="grd-bg"></div>
+                        <svg id="n-ed-ly" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10">
+                            <defs>
+                                <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--txt-mut)" /></marker>
+                                <marker id="ah-act" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--pri)" /></marker>
+                                <marker id="ah-err" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--dan)" /></marker>
+                            </defs>
+                        </svg>
+                        <div id="n-nd-ly" style="position:absolute;top:0;left:0;width:100%;height:100%"></div>
+                    </div>
+                </div>
+                <div class="absolute bottom-6 left-6 bg-[var(--bg-surf)]/95 p-3.5 rounded-2xl text-[12.5px] border border-[var(--bd-col)] shadow-[var(--sh-pan)] backdrop-blur-md z-40 text-[var(--txt-sec)] font-medium">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-3.5 h-3.5 rounded-full bg-[var(--suc)] shadow-[0_0_0_3px_rgba(49,206,102,.2)]"></div> 정상 연결 
+                        <div class="w-3.5 h-3.5 rounded-full bg-[var(--dan)] shadow-[0_0_0_3px_rgba(240,68,82,.2)] ml-3"></div> 연결 오류/누락
+                    </div>
+                    <div class="pt-2 border-t border-[var(--bd-col)] opacity-80 flex items-center gap-1.5">
+                        <i class="ph ph-mouse-right text-[16px]"></i> 선을 클릭하거나 포트 우클릭하여 연결 끊기
+                    </div>
+                </div>
+            </section>
+            
+            <section id="n-rp" class="bg-[var(--bg-surf)] border-l border-[var(--bd-col)] flex flex-col shrink-0 relative z-40 shadow-[-10px_0_30px_rgba(0,0,0,0.04)] w-[400px] transition-all">
+                <div id="n-rsz" class="absolute left-[-6px] top-0 bottom-0 w-[12px] cursor-col-resize z-50 hover:bg-[var(--pri)]/20 transition-colors"></div>
+                
+                <div class="p-6 border-b border-[var(--bd-col)] bg-[var(--in-bg)] shrink-0">
+                    <h2 class="text-[14px] font-bold text-[var(--txt-pri)] mb-3.5 flex items-center gap-1.5">
+                        <i class="ph ph-monitor-play text-[var(--pri)] text-[20px]"></i> 라이브 프리뷰
+                    </h2>
+                    <div class="aspect-video bg-[#101318] relative rounded-2xl overflow-hidden shadow-inner flex flex-col justify-end border border-[var(--bd-col)]">
+                        <div id="pv-bg" class="absolute inset-0 bg-cover bg-center opacity-80 transition-all duration-400 ease-out"></div>
+                        <div id="pv-chr" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2/5 h-[85%] flex items-end justify-center transition-all duration-400 ease-out"></div>
+                        <div class="relative z-10 w-full p-3.5 h-[50%] flex flex-col justify-end">
+                            <div class="bg-white/95 dark:bg-[#1c212a]/95 text-[var(--txt-pri)] rounded-xl p-3 w-full h-full flex flex-col shadow-sm border border-white/20 backdrop-blur-md">
+                                <span id="pv-spk" class="font-extrabold text-[var(--pri)] text-[13px] mb-1"></span>
+                                <p id="pv-txt" class="text-[13px] font-medium leading-snug overflow-hidden text-ellipsis line-clamp-2"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                    <div id="n-emp" class="h-full flex flex-col items-center justify-center text-[var(--txt-mut)] py-10 text-center">
+                        <i class="ph ph-cursor-click text-[60px] mb-4 opacity-30"></i>
+                        <p class="text-[14.5px] font-semibold leading-relaxed">노드나 선을 선택하여<br>편집하세요.</p>
+                    </div>
+                    
+                    <div id="n-ed" class="space-y-7 pb-6 hidden animate-pop">
+                        <!-- Type Info -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2.5">
+                                <h3 class="font-bold text-[14px] text-[var(--txt-pri)] flex items-center gap-1.5"><i class="ph ph-hash text-[var(--txt-mut)] text-[20px]"></i> 노드 설정</h3>
+                                <button onclick="window.nA.delNd()" class="text-[12.5px] text-[var(--dan)] bg-[var(--dan)]/10 px-2.5 py-1.5 rounded-lg font-bold hover:bg-[var(--dan)]/20 transition-colors">삭제</button>
+                            </div>
+                            <div class="flex gap-3">
+                                <input type="text" id="np-id" readonly class="ts-in bg-[var(--bg-base)] opacity-70 w-[80px] text-[13px] text-center font-mono focus:border-transparent focus:shadow-none" title="노드 고유 ID">
+                                <div class="flex-1 flex gap-2 items-center">
+                                    <select id="np-typ" class="ts-in py-2.5 flex-1 font-bold cursor-pointer" onchange="window.nA.updNd('type')"></select>
+                                    <button onclick="window.nA.tgMod('n-tm')" class="ts-btn p-2.5 bg-[var(--in-bg)] hover:bg-[var(--pri)] hover:text-white" title="테마 관리"><i class="ph ph-palette text-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dialogue Content -->
+                        <div>
+                            <h3 class="font-bold text-[14px] text-[var(--txt-pri)] mb-2.5 flex items-center gap-1.5"><i class="ph ph-chat-centered-text text-[var(--txt-mut)] text-[20px]"></i> 대사 및 연출</h3>
+                            <input type="text" id="np-spk" class="ts-in mb-3 py-3 font-bold bg-white dark:bg-black/20 border border-[var(--bd-col)] text-[15px]" placeholder="화자 이름" oninput="window.nA.updNd('spk')">
+                            <textarea id="np-txt" rows="4" class="ts-in resize-y mb-3 py-3 leading-relaxed border border-[var(--bd-col)]" placeholder="플레이어에게 보여질 대사나 지문을 입력하세요." oninput="window.nA.updNd('txt')"></textarea>
+                            <div class="grid grid-cols-2 gap-3 mt-1">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[11.5px] text-[var(--txt-sec)] font-bold pl-1">배경 이미지 URL</label>
+                                    <input type="text" id="np-bg" class="ts-in text-[13px] border border-[var(--bd-col)] placeholder-[var(--txt-mut)]" placeholder="https://..." oninput="window.nA.updNd('bg')">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[11.5px] text-[var(--txt-sec)] font-bold pl-1">캐릭터 이미지 URL</label>
+                                    <input type="text" id="np-chr" class="ts-in text-[13px] border border-[var(--bd-col)] placeholder-[var(--txt-mut)]" placeholder="https://..." oninput="window.nA.updNd('chr')">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Logic -->
+                        <div class="bg-[#e8f3ff] dark:bg-[#3182f6]/10 p-4 rounded-2xl border border-[#3182f6]/20">
+                            <h3 class="font-bold text-[14px] text-[#3182f6] mb-1.5 flex items-center gap-1.5"><i class="ph ph-lightning text-[20px]"></i> 실행 변수 설정</h3>
+                            <p class="text-[11px] text-[var(--txt-sec)] mb-3 leading-relaxed opacity-80">이 노드에 도달하면 변수가 활성화됩니다.<br>(예: <code class="bg-black/5 px-1 rounded">has_sword = true</code>)</p>
+                            <textarea id="np-evt" rows="2" class="ts-in text-[13px] font-mono bg-white dark:bg-black/30 border border-[#3182f6]/30 text-[#3182f6] placeholder-[#3182f6]/40" placeholder="변수명 = 값" oninput="window.nA.updNd('evt')"></textarea>
+                        </div>
+                        
+                        <!-- Branches -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3 pb-3 border-b border-[var(--bd-col)]">
+                                <h3 class="font-bold text-[14px] text-[var(--txt-pri)] flex items-center gap-1.5"><i class="ph ph-git-branch text-[var(--txt-mut)] text-[20px]"></i> 선택지 분기</h3>
+                                <button onclick="window.nA.addCh()" class="ts-btn ts-btn-pri py-1.5 px-3 text-[13px]"><i class="ph ph-plus"></i> 추가</button>
+                            </div>
+                            <div id="n-ch-box" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Novel Modals -->
+        <div id="n-tm" class="fixed inset-0 z-[9999] bg-black/50 flex-col items-center justify-center backdrop-blur-sm hidden">
+            <div class="bg-[var(--bg-surf)] rounded-[24px] w-[400px] shadow-[var(--sh-pan)] overflow-hidden border border-[var(--bd-col)] transform transition-all animate-pop">
+                <div class="p-6 border-b border-[var(--bd-col)] flex justify-between items-center bg-[var(--bg-surf)]">
+                    <h2 class="font-bold text-[18px] text-[var(--txt-pri)]">테마 라벨 관리</h2>
+                    <button onclick="window.nA.tgMod('n-tm')" class="text-[var(--txt-sec)] hover:text-[var(--dan)] transition-colors"><i class="ph ph-x text-2xl"></i></button>
+                </div>
+                <div class="p-6 bg-[var(--bg-base)]">
+                    <div class="flex gap-3 mb-6 bg-[var(--bg-surf)] p-3 rounded-2xl border border-[var(--bd-col)] shadow-sm">
+                        <input type="text" id="tm-nm" class="ts-in border-none bg-transparent flex-1 text-[15px]" placeholder="새 라벨 (예: 퀘스트)">
+                        <input type="color" id="tm-col" value="#3182f6" class="w-12 h-12 rounded-xl border-none cursor-pointer bg-transparent p-0 shrink-0">
+                        <button onclick="window.nA.addTm()" class="ts-btn ts-btn-pri shrink-0 h-12 px-5"><i class="ph ph-plus text-lg"></i></button>
+                    </div>
+                    <div id="tm-ls" class="space-y-2.5 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="n-csv" class="fixed inset-0 z-[9999] bg-black/50 flex-col items-center justify-center backdrop-blur-sm hidden">
+            <div class="bg-[var(--bg-surf)] rounded-[24px] w-[360px] shadow-[var(--sh-pan)] overflow-hidden border border-[var(--bd-col)] transform transition-all animate-pop">
+                <div class="p-6 border-b border-[var(--bd-col)] flex justify-between items-center">
+                    <h2 class="font-bold text-[18px] text-[var(--txt-pri)] flex items-center gap-2"><i class="ph ph-file-csv text-[var(--pri)] text-2xl"></i> CSV 추출</h2>
+                </div>
+                <div class="p-6 bg-[var(--in-bg)]" id="csv-bx"></div>
+                <div class="p-5 flex justify-end gap-3 border-t border-[var(--bd-col)] bg-[var(--bg-surf)]">
+                    <button onclick="window.nA.tgMod('n-csv')" class="ts-btn py-2.5 px-5">취소</button>
+                    <button onclick="window.nA.doCsv()" class="ts-btn ts-btn-pri py-2.5 px-6">다운로드</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Play Fullscreen Modal -->
+        <div id="n-ply" class="fixed inset-0 z-[9999] bg-black flex-col overflow-hidden hidden">
+            <div id="pl-bg" class="absolute inset-0 bg-cover bg-center transition-all duration-[800ms] ease-out opacity-90 scale-105"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10"></div>
+            <div id="pl-chr" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[70vh] h-[90vh] flex items-end justify-center transition-all duration-[600ms] ease-out z-10"></div>
+            <div id="pl-cov" class="absolute inset-0 z-20 cursor-pointer" onclick="window.nA.adv()"></div>
+            
+            <div class="absolute bottom-[5%] left-1/2 transform -translate-x-1/2 w-[90%] max-w-[1200px] min-h-[240px] bg-[#101318]/90 text-[var(--txt-pri)] rounded-[32px] flex flex-col z-30 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl border border-white/10 transition-all duration-300">
+                <div class="px-12 pt-10 pb-4 border-b border-white/10">
+                    <span id="pl-spk" class="font-extrabold text-[var(--pri)] text-[28px] tracking-tight drop-shadow-md"></span>
+                </div>
+                <div class="px-12 py-8 flex-1 relative">
+                    <p id="pl-txt" class="text-[22px] font-medium whitespace-pre-wrap leading-[1.7] tracking-tight text-white drop-shadow-sm"></p>
+                    <div id="pl-ind" class="hidden absolute bottom-8 right-10 text-[var(--pri)] text-4xl animate-bounce">▼</div>
+                </div>
+            </div>
+            
+            <div id="pl-chc" class="absolute inset-0 flex-col items-center justify-center gap-5 z-40 bg-black/70 backdrop-blur-md pb-[15%] hidden"></div>
+            
+            <div class="absolute top-8 left-8 bg-[#101318]/80 rounded-2xl p-5 w-72 z-50 shadow-2xl backdrop-blur-xl border border-white/10 transition-opacity duration-300 opacity-40 hover:opacity-100">
+                <h3 class="text-[var(--pri)] font-bold mb-3 text-[15px] flex items-center gap-2"><i class="ph ph-bug text-xl"></i> 디버그 변수 확인</h3>
+                <div id="pl-var" class="text-[13px] font-mono space-y-1.5"></div>
+            </div>
+            
+            <button onclick="window.nA.tgMod('n-ply')" class="absolute top-8 right-8 bg-white/10 hover:bg-[var(--dan)] text-white w-14 h-14 flex items-center justify-center rounded-full z-50 shadow-lg backdrop-blur-md transition-all group">
+                <i class="ph ph-x text-2xl group-hover:scale-110 transition-transform"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Global Dialog / Help Modals -->
+    <div id="gb-dlg" class="fixed inset-0 z-[9999] bg-black/60 flex-col items-center justify-center backdrop-blur-sm hidden">
+        <div class="bg-[var(--bg-surf)] rounded-[28px] shadow-[var(--sh-pan)] w-[360px] flex flex-col p-8 text-center transform transition-all animate-pop border border-[var(--bd-col)]">
+            <div id="dg-ic-bg" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"><i id="dg-ic" class="text-4xl ph"></i></div>
+            <h3 id="dg-tit" class="text-[20px] font-bold text-[var(--txt-pri)] mb-3 tracking-tight"></h3>
+            <p id="dg-msg" class="text-[15px] text-[var(--txt-sec)] mb-8 leading-relaxed"></p>
+            <div id="dg-btn" class="flex gap-3 justify-center w-full"></div>
+        </div>
+    </div>
+    
+    <div id="c-hlp-mod" class="fixed inset-0 z-[9999] bg-black/60 flex-col items-center justify-center backdrop-blur-sm hidden">
+        <div class="bg-[var(--bg-surf)] rounded-[28px] shadow-[var(--sh-pan)] w-[460px] max-w-[90%] flex flex-col p-8 transform transition-all animate-pop border border-[var(--bd-col)]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-[20px] font-bold text-[var(--txt-pri)] flex items-center gap-2"><i class="ph ph-info text-[var(--pri)] text-2xl"></i> 캐릭터 관계도 사용법</h3>
+                <button onclick="document.getElementById('c-hlp-mod').style.display='none'" class="text-[var(--txt-mut)] hover:text-[var(--dan)] transition-colors"><i class="ph ph-x text-2xl"></i></button>
+            </div>
+            <div class="space-y-6 text-[14px]">
+                <div>
+                    <h4 class="font-bold text-[var(--pri)] mb-2 flex items-center gap-1.5"><i class="ph ph-mouse-left"></i> 마우스 & 화면 이동</h4>
+                    <ul class="text-[var(--txt-sec)] space-y-1.5 pl-1 leading-relaxed">
+                        <li>• 빈 캔버스 <b>더블 클릭</b>: <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">새 캐릭터 추가</span></li>
+                        <li>• <b>휠 클릭 + 드래그</b> 또는 <b>Space + 드래그</b>: <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">화면 이동</span></li>
+                        <li>• 포트(동그라미) <b>우클릭</b>: <span class="bg-[var(--dan)]/10 text-[var(--dan)] px-1.5 py-0.5 rounded font-mono text-[13px]">관계선 삭제 옵션</span></li>
+                        <li>• 캐릭터 <b>Shift + 클릭</b>: <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">다중 선택</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-[var(--pri)] mb-2 flex items-center gap-1.5"><i class="ph ph-keyboard"></i> 단축키</h4>
+                    <ul class="text-[var(--txt-sec)] space-y-1.5 pl-1 leading-relaxed">
+                        <li>• <kbd class="bg-[var(--bd-col)] text-[var(--txt-pri)] font-bold px-1.5 py-0.5 rounded text-[13px]">Del</kbd> / <kbd class="bg-[var(--bd-col)] text-[var(--txt-pri)] font-bold px-1.5 py-0.5 rounded text-[13px]">Backspace</kbd>: 선택한 노드/관계선 삭제</li>
+                        <li>• <kbd class="bg-[var(--bd-col)] text-[var(--txt-pri)] font-bold px-1.5 py-0.5 rounded text-[13px]">Ctrl + Z</kbd>: 실행 취소</li>
+                        <li>• <kbd class="bg-[var(--bd-col)] text-[var(--txt-pri)] font-bold px-1.5 py-0.5 rounded text-[13px]">Ctrl + Y</kbd>: 다시 실행</li>
+                    </ul>
+                </div>
+            </div>
+            <button onclick="document.getElementById('c-hlp-mod').style.display='none'" class="w-full mt-8 py-3.5 bg-[var(--in-bg)] text-[var(--txt-pri)] hover:bg-[var(--bd-col)] rounded-[12px] font-bold text-[15px] transition-colors">확인</button>
+        </div>
+    </div>
+    
+    <div id="n-hlp-mod" class="fixed inset-0 z-[9999] bg-black/60 flex-col items-center justify-center backdrop-blur-sm hidden">
+        <div class="bg-[var(--bg-surf)] rounded-[28px] shadow-[var(--sh-pan)] w-[460px] max-w-[90%] flex flex-col p-8 transform transition-all animate-pop border border-[var(--bd-col)]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-[20px] font-bold text-[var(--txt-pri)] flex items-center gap-2"><i class="ph ph-info text-[var(--pri)] text-2xl"></i> 스토리 분기 사용법</h3>
+                <button onclick="document.getElementById('n-hlp-mod').style.display='none'" class="text-[var(--txt-mut)] hover:text-[var(--dan)] transition-colors"><i class="ph ph-x text-2xl"></i></button>
+            </div>
+            <div class="space-y-6 text-[14px]">
+                <div>
+                    <h4 class="font-bold text-[var(--pri)] mb-2 flex items-center gap-1.5"><i class="ph ph-mouse-left"></i> 마우스 & 분기 연결</h4>
+                    <ul class="text-[var(--txt-sec)] space-y-1.5 pl-1 leading-relaxed">
+                        <li>• 빈 캔버스 <b>더블 클릭</b>: <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">새 분기(노드) 추가</span></li>
+                        <li>• <b>선택지 포트(동그라미)</b>를 드래그해서 다음 노드 상단에 연결</li>
+                        <li>• 연결선 <b>클릭 후 삭제</b> 또는 포트 <b>우클릭</b>: <span class="bg-[var(--dan)]/10 text-[var(--dan)] px-1.5 py-0.5 rounded font-mono text-[13px]">해당 연결선 끊기</span></li>
+                        <li>• <b>휠 클릭 + 드래그</b> 또는 <b>Space + 드래그</b>: <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">화면 이동</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-[var(--pri)] mb-2 flex items-center gap-1.5"><i class="ph ph-code"></i> 변수 및 조건 설정 (고급)</h4>
+                    <ul class="text-[var(--txt-sec)] space-y-1.5 pl-1 leading-relaxed">
+                        <li>• <b>실행 변수:</b> <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">has_key = true</span><br><span class="text-[13px] opacity-80">(해당 노드 도달 시 변수 활성화)</span></li>
+                        <li>• <b>출현 조건:</b> 선택지에 <span class="bg-[var(--in-bg)] px-1.5 py-0.5 rounded font-mono text-[13px]">has_key</span> 등 변수명 입력 시 히든 분기로 설정됩니다.</li>
+                    </ul>
+                </div>
+            </div>
+            <button onclick="document.getElementById('n-hlp-mod').style.display='none'" class="w-full mt-8 py-3.5 bg-[var(--in-bg)] text-[var(--txt-pri)] hover:bg-[var(--bd-col)] rounded-[12px] font-bold text-[15px] transition-colors">확인</button>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes popIn { 
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); } 
+            100% { opacity: 1; transform: scale(1) translateY(0); } 
+        }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .node-card-transition { transition: border-color 0.2s, box-shadow 0.2s; }
+    </style>
+
+    <script>
+        // ==============================================
+        // Global Shared Logic
+        // ==============================================
+        const $ = id => document.getElementById(id);
+        
+        window.curTab = 'char';
+        
+        window.swTab = function(t) {
+            window.curTab = t;
+            const cApp = document.getElementById('c-app'), nApp = document.getElementById('n-app');
+            const tc = document.getElementById('tab-char'), tn = document.getElementById('tab-novel');
+            
+            if(cApp) cApp.style.display = t === 'char' ? 'flex' : 'none';
+            if(nApp) nApp.style.display = t === 'novel' ? 'flex' : 'none';
+            
+            const onCls = "px-5 py-1.5 rounded-lg bg-[var(--bg-surf)] text-[var(--pri)] font-bold shadow-sm transition-all text-[13.5px]";
+            const offCls = "px-5 py-1.5 rounded-lg text-[var(--txt-sec)] hover:bg-[var(--bg-surf)] font-semibold transition-all text-[13.5px]";
+            
+            if(tc) tc.className = t === 'char' ? onCls : offCls;
+            if(tn) tn.className = t === 'novel' ? onCls : offCls;
+            
+            if (t === 'char' && window.cA) window.cA.updVw();
+            if (t === 'novel' && window.nA) setTimeout(() => window.nA.updVw(true), 10); 
+        }
+
+        window.tgTheme = function() {
+            const doc = document.documentElement;
+            const isDark = doc.classList.contains('dark');
+            const nTh = isDark ? 'light' : 'dark';
+            
+            doc.setAttribute('data-theme', nTh);
+            if (nTh === 'dark') doc.classList.add('dark');
+            else doc.classList.remove('dark');
+            
+            localStorage.setItem('wb_th', nTh);
+            
+            const ic = document.getElementById('gb-theme-ic'); 
+            if (ic) ic.className = nTh === 'dark' ? 'ph ph-sun text-[22px]' : 'ph ph-moon text-[22px]';
+            
+            if (window.cA) window.cA.drwBg();
+        }
+
+        window.showDlg = function(tit, msg, isCfm = false, onCfm = null) {
+            const dlg = document.getElementById('gb-dlg');
+            if (!dlg) return;
+            
+            const titleEl = document.getElementById('dg-tit');
+            const msgEl = document.getElementById('dg-msg');
+            const icBg = document.getElementById('dg-ic-bg');
+            const ic = document.getElementById('dg-ic');
+            const btnBox = document.getElementById('dg-btn');
+            
+            if(titleEl) titleEl.innerText = tit; 
+            if(msgEl) msgEl.innerHTML = msg;
+            
+            const bgClass = isCfm ? 'bg-[rgba(240,68,82,0.1)] text-[var(--dan)]' : 'bg-[rgba(49,130,246,0.1)] text-[var(--pri)]';
+            if(icBg) icBg.className = `w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 ${bgClass}`;
+            if(ic) ic.className = `text-4xl ph ${isCfm ? 'ph-warning' : 'ph-info'}`;
+            
+            const btnHtml = isCfm 
+                ? `<button id="d-can" class="flex-1 py-3.5 bg-[var(--in-bg)] text-[var(--txt-sec)] hover:bg-[var(--bd-col)] rounded-xl font-bold text-[15px] transition-colors">취소</button><button id="d-ok" class="flex-1 py-3.5 bg-[var(--dan)] text-white hover:bg-[#d93b48] rounded-xl font-bold text-[15px] transition-colors">확인</button>` 
+                : `<button id="d-ok" class="w-full py-3.5 bg-[var(--pri)] text-white hover:bg-[var(--pri)] rounded-xl font-bold text-[15px] transition-colors">확인</button>`;
+            
+            if(btnBox) btnBox.innerHTML = btnHtml;
+            dlg.style.display = 'flex';
+            
+            if (isCfm) {
+                const btnCan = document.getElementById('d-can');
+                if(btnCan) btnCan.onclick = () => dlg.style.display = 'none';
+            }
+            
+            const btnOk = document.getElementById('d-ok');
+            if(btnOk) {
+                btnOk.onclick = () => { 
+                    dlg.style.display = 'none'; 
+                    if (onCfm) onCfm(); 
+                };
+            }
+        }
+        
+        window.showHelp = function() {
+            if (window.curTab === 'char') {
+                const hlp = document.getElementById('c-hlp-mod');
+                if(hlp) hlp.style.display = 'flex';
+            } else {
+                const hlp = document.getElementById('n-hlp-mod');
+                if(hlp) hlp.style.display = 'flex';
+            }
+        }
+
+        // ==============================================
+        // App 1: Character Mapper Studio
+        // ==============================================
+        window.cA = (() => {
+            let st = { nodes: [], edges: [] };
+            let vw = { x: 0, y: 0, z: 1 };
+            let hst = [], hIdx = -1, pre = [], sTerr = true;
+            let sel = new Set(), sTyp = null, mod = 'idle', sPos = { x: 0, y: 0 }, sVw = { x: 0, y: 0 };
+            let dNds = [], lk = null, ctxT = null, spc = false, raf = null, mDir = false;
+            
+            const els = {}; 
+            const dMap = new Map(); 
+            const eMap = new Map();
+            
+            const gId = () => Math.random().toString(36).substr(2,7);
+            const rCol = () => ['#fcadad','#31ce66','#3182f6','#f5b014','#d1bdfa','#ffcba5','#a5e4d9'][Math.floor(Math.random()*7)];
+            const rEmo = () => ['👤','🧙‍♂️','🧝‍♀️','🧛‍♂️','🤴','👸','🤖','👽','👻','🕵️','🥷'][Math.floor(Math.random()*11)];
+            
+            const sToW = (ex, ey) => { 
+                if(!els.vp) return {x:0, y:0};
+                const r = els.vp.getBoundingClientRect(); 
+                return { x: (ex - r.left - vw.x) / vw.z, y: (ey - r.top - vw.y) / vw.z }; 
+            };
+            
+            const isUrl = v => typeof v === 'string' && (v.trim().startsWith('http') || v.trim().startsWith('data:image'));
+            
+            const svg = (t, a) => { 
+                const e = document.createElementNS("http://www.w3.org/2000/svg", t); 
+                for (let k in a) e.setAttribute(k, a[k]); 
+                return e; 
+            };
+            
+            const psHst = () => { 
+                if (hIdx < hst.length - 1) hst = hst.slice(0, hIdx + 1); 
+                hst.push(JSON.stringify(st)); 
+                if (hst.length > 30) hst.shift(); 
+                hIdx = hst.length - 1; 
+                svL(); 
+            };
+            
+            const ldSt = ns => {
+                st = ns; 
+                if(els.nl) els.nl.innerHTML = '';
+                
+                if(els.el) {
+                    Array.from(els.el.children).forEach(c => { 
+                        if (c.tagName.toLowerCase() !== 'defs' && c.id !== 'c-ter-ly') c.remove(); 
+                    });
+                }
+                
+                dMap.clear(); 
+                eMap.clear(); 
+                sel.clear(); 
+                sTyp = null; 
+                updVw();
+                
+                if(st.nodes) st.nodes.forEach(crNd); 
+                if(st.edges) st.edges.forEach(crEd); 
+                
+                updANds(); 
+                updAEds(); 
+                rfUI();
+            };
+            
+            const svL = () => { 
+                localStorage.setItem('wb_cm_d', JSON.stringify(st)); 
+                localStorage.setItem('wb_cm_p', JSON.stringify(pre)); 
+                localStorage.setItem('wb_cm_t', sTerr); 
+            };
+            
+            const ldL = () => {
+                try { pre = JSON.parse(localStorage.getItem('wb_cm_p')) || []; } catch(e){}
+                const t = localStorage.getItem('wb_cm_t'); 
+                if (t !== null) sTerr = (t === 'true');
+                
+                const d = localStorage.getItem('wb_cm_d'); 
+                if (d) {
+                    try { return JSON.parse(d); } catch(e){}
+                }
+                
+                return {
+                    nodes: [
+                        { id: 'n1', x: 500, y: 400, name: '용사 아서', group: '빛의 교단', color: '#3182f6', desc: '세상을 구할 운명을 지닌 열혈 소년.', avatar: '⚔️', scale: 1.2 },
+                        { id: 'n2', x: 1000, y: 400, name: '마왕 루시퍼', group: '어둠의 군단', color: '#f04452', desc: '심연에서 깨어난 파괴자.', avatar: '👹', scale: 1.3 },
+                        { id: 'n3', x: 250, y: 600, name: '대사제 엘라', group: '빛의 교단', color: '#31ce66', desc: '성스러운 치유사.', avatar: '✨', scale: 1 },
+                        { id: 'n4', x: 500, y: 150, name: '기사 카일', group: '제국 기사단', color: '#f5b014', desc: '검술의 천재 라이벌.', avatar: '🛡️', scale: 1.1 }
+                    ],
+                    edges: [
+                        { id: 'e1', from: 'n1', to: 'n3', type: 'friend', label: '절대적 신뢰', style: 'solid', bidi: true, color: '#31ce66' },
+                        { id: 'e2', from: 'n1', to: 'n2', type: 'hostile', label: '숙적', style: 'solid', bidi: false, color: '#f04452' },
+                        { id: 'e3', from: 'n4', to: 'n1', type: 'warning', label: '라이벌 의식', style: 'dashed', bidi: false, color: '#f5b014' }
+                    ]
+                };
+            };
+
+            const drwBg = () => {
+                if(!els.tl) return;
+                els.tl.innerHTML = '';
+                
+                const btn = document.getElementById('c-btn-ter'); 
+                if (btn) btn.style.color = sTerr ? 'var(--pri)' : 'var(--txt-sec)';
+                
+                if (!sTerr || !st.nodes) return;
+                
+                const gs = {}; 
+                st.nodes.forEach(n => { 
+                    if (n.group && n.group !== '중립') { 
+                        if (!gs[n.group]) gs[n.group] = { nds: [], c: n.color }; 
+                        gs[n.group].nds.push(n); 
+                    } 
+                });
+                
+                const isL = document.documentElement.getAttribute('data-theme') !== 'dark';
+                const fg = document.createDocumentFragment();
+                
+                Object.entries(gs).forEach(([gn, d]) => {
+                    if (d.nds.length < 1) return;
+                    let mx = Infinity, my = Infinity, xx = -Infinity, xy = -Infinity;
+                    
+                    d.nds.forEach(n => { 
+                        const sc = n.scale || 1, w = 220 * sc, h = (n._h || 120) * sc; 
+                        mx = Math.min(mx, n.x); 
+                        my = Math.min(my, n.y); 
+                        xx = Math.max(xx, n.x + w); 
+                        xy = Math.max(xy, n.y + h); 
+                    });
+                    
+                    const padding = 80;
+                    
+                    const rect = svg('rect', { 
+                        x: mx - padding, 
+                        y: my - padding, 
+                        width: xx - mx + (padding * 2), 
+                        height: xy - my + (padding * 2), 
+                        rx: 40, 
+                        fill: d.c, 
+                        'fill-opacity': isL ? '.04' : '.08', 
+                        stroke: d.c, 
+                        'stroke-opacity': isL ? '.25' : '.3', 
+                        'stroke-width': 2.5, 
+                        'stroke-dasharray': '10,10', 
+                        class: 'group-bg' 
+                    });
+                    
+                    const text = svg('text', { 
+                        x: mx - padding + 24, 
+                        y: my - padding + 34, 
+                        fill: d.c, 
+                        'font-size': 20, 
+                        'font-weight': 800, 
+                        opacity: 0.8, 
+                        class: 'group-bg' 
+                    });
+                    text.textContent = gn; 
+                    
+                    fg.appendChild(rect);
+                    fg.appendChild(text);
+                });
+                
+                els.tl.appendChild(fg);
+            };
+            
+            const crNd = n => {
+                const d = document.createElement('div'); 
+                d.className = 'c-nd animate-pop'; 
+                d.id = `node-${n.id}`;
+                d.innerHTML = `<div class="c-nd-hd"><div class="c-avt"></div><div class="node-meta flex flex-col gap-1 w-full overflow-hidden"><div class="node-name font-bold text-[15px] truncate"></div></div></div><div class="c-pt port-top" data-port="top"></div><div class="c-pt port-right" data-port="right"></div><div class="c-pt port-bottom" data-port="bottom"></div><div class="c-pt port-left" data-port="left"></div>`;
+                
+                d.onmousedown = e => { 
+                    if (e.button !== 0) return; 
+                    e.stopPropagation(); 
+                    if(els.ctxMenu) els.ctxMenu.style.display = 'none';
+                    
+                    if (e.shiftKey || e.metaKey) {
+                        setSel('node', n.id, true);
+                    } else if (!sel.has(n.id) || sTyp !== 'node') {
+                        setSel('node', n.id);
+                    }
+                    
+                    mod = 'drag_node'; 
+                    sPos = sToW(e.clientX, e.clientY); 
+                    
+                    dNds = Array.from(sel).map(id => { 
+                        const x = st.nodes.find(v => v.id === id); 
+                        return { id, x: x.x, y: x.y }; 
+                    }); 
+                };
+                
+                d.oncontextmenu = e => { 
+                    e.preventDefault(); 
+                    showCtx(e, n.id); 
+                };
+                
+                d.querySelectorAll('.c-pt').forEach(p => {
+                    p.onmousedown = e => { 
+                        e.stopPropagation(); 
+                        if(els.ctxMenu) els.ctxMenu.style.display = 'none'; 
+                        
+                        mod = 'link'; 
+                        lk = { fId: n.id, sPt: getAnch(st.nodes.find(x => x.id === n.id), p.dataset.port) };
+                        
+                        let pv = document.getElementById('c-lk-pv'); 
+                        if (!pv) { 
+                            pv = svg('path', { id: 'c-lk-pv', fill: 'none', stroke: 'var(--pri)', 'stroke-width': 3.5, 'stroke-dasharray': '6,6' }); 
+                            if(els.el) els.el.appendChild(pv); 
+                        }
+                    }
+                });
+                
+                if(els.nl) els.nl.appendChild(d); 
+                dMap.set(n.id, d);
+            };
+
+            const syNd = n => {
+                const el = dMap.get(n.id); 
+                if (!el) return;
+                
+                el.style.left = `${n.x}px`;
+                el.style.top = `${n.y}px`;
+                el.style.transform = `scale(${n.scale || 1})`;
+                
+                const aw = el.querySelector('.c-avt'); 
+                if(aw) {
+                    aw.style.borderColor = n.color;
+                    aw.innerHTML = isUrl(n.avatar) 
+                        ? `<img src="${n.avatar}" style="width:100%;height:100%;object-fit:cover;"/>` 
+                        : `<span>${n.avatar || '👤'}</span>`;
+                }
+                
+                let b = el.querySelector('.node-group-badge'); 
+                if (n.group) { 
+                    if (!b) { 
+                        b = document.createElement('div'); 
+                        b.className = 'node-group-badge text-[10px] font-bold px-2 py-0.5 rounded-md w-fit truncate max-w-[130px]'; 
+                        const meta = el.querySelector('.node-meta');
+                        if(meta) meta.prepend(b); 
+                    } 
+                    b.style.cssText = `background:${n.color}15;color:${n.color};border:1px solid ${n.color}30;`; 
+                    b.textContent = n.group; 
+                } else if (b) {
+                    b.remove();
+                }
+                
+                const nameEl = el.querySelector('.node-name');
+                if(nameEl) nameEl.textContent = n.name || '이름 없음';
+                
+                let bd = el.querySelector('.node-body'); 
+                if (n.desc) { 
+                    if (!bd) { 
+                        bd = document.createElement('div'); 
+                        bd.className = 'node-body p-4 text-[13.5px] text-[var(--txt-sec)] leading-relaxed border-t border-[var(--bd-col)] line-clamp-3'; 
+                        el.insertBefore(bd, el.querySelector('.port-top')); 
+                    } 
+                    bd.textContent = n.desc; 
+                } else if (bd) {
+                    bd.remove();
+                }
+                
+                const isS = (sTyp === 'node' && sel.has(n.id)); 
+                el.classList.toggle('sel', isS); 
+                el.style.zIndex = isS ? '30' : '10'; 
+                el.style.borderColor = isS ? n.color : '';
+                
+                const searchInput = document.getElementById('c-sch');
+                const q = searchInput ? searchInput.value.toLowerCase() : ''; 
+                let dim = false;
+                
+                if (q) { 
+                    if (!(n.name || '').toLowerCase().includes(q) && !(n.group && n.group.toLowerCase().includes(q))) {
+                        dim = true; 
+                    }
+                } else if (sTyp === 'node' && sel.size > 0) { 
+                    let cn = new Set(sel); 
+                    st.edges.forEach(e => { 
+                        if (sel.has(e.from)) cn.add(e.to); 
+                        if (sel.has(e.to)) cn.add(e.from); 
+                    }); 
+                    if (!cn.has(n.id)) dim = true; 
+                }
+                
+                el.classList.toggle('dim', dim); 
+                n._h = el.offsetHeight;
+            };
+
+            const getAnch = (n, p) => { 
+                const s = n.scale || 1, w = 220 * s, h = (n._h || 120) * s; 
+                return p === 'top' ? { x: n.x + w / 2, y: n.y, dx: 0, dy: -1 } 
+                     : p === 'bottom' ? { x: n.x + w / 2, y: n.y + h, dx: 0, dy: 1 } 
+                     : p === 'left' ? { x: n.x, y: n.y + h / 2, dx: -1, dy: 0 } 
+                     : p === 'right' ? { x: n.x + w, y: n.y + h / 2, dx: 1, dy: 0 } 
+                     : { x: n.x + w / 2, y: n.y + h / 2, dx: 0, dy: 0 }; 
+            };
+            
+            const getBz = (p1, p2, mut) => { 
+                const dx = p2.x - p1.x, dy = p2.y - p1.y, dst = Math.sqrt(dx * dx + dy * dy), t = Math.min(Math.max(dst * .4, 60), 200); 
+                let c1x = p1.x + p1.dx * t, c1y = p1.y + p1.dy * t, c2x = p2.x + p2.dx * t, c2y = p2.y + p2.dy * t; 
+                
+                if (mut) { 
+                    const nx = -dy / (dst || 1), ny = dx / (dst || 1); 
+                    c1x += nx * 80; c1y += ny * 80; c2x += nx * 80; c2y += ny * 80; 
+                } 
+                
+                return { 
+                    d: `M ${p1.x} ${p1.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`, 
+                    mx: .125 * p1.x + .375 * c1x + .375 * c2x + .125 * p2.x, 
+                    my: .125 * p1.y + .375 * c1y + .375 * c2y + .125 * p2.y 
+                }; 
+            };
+
+            const crEd = e => {
+                const g = svg('g', { class: 'edge-group', id: `edge-${e.id}` });
+                g.innerHTML = `<path class="edge-hit" fill="none" stroke="transparent" stroke-width="24" pointer-events="stroke" cursor="pointer"></path><path class="c-ed-ph"></path><g class="edge-label-group" style="display:none"><rect class="edge-label-bg" rx="10" ry="10" fill="var(--bg-surf)" stroke="var(--bd-col)" stroke-width="1.5"></rect><text class="edge-label-text" font-size="12.5" font-weight="700" fill="var(--txt-sec)" text-anchor="middle" dominant-baseline="middle" pointer-events="none"></text></g>`;
+                
+                g.onmousedown = ev => { ev.stopPropagation(); setSel('edge', e.id, ev.shiftKey); }; 
+                g.oncontextmenu = ev => { ev.preventDefault(); showCtx(ev, e.id, 'edge'); };
+                
+                if(els.el) els.el.appendChild(g); 
+                eMap.set(e.id, g);
+            };
+
+            const syEd = e => {
+                const g = eMap.get(e.id);
+                if(!g) return;
+                
+                const f = st.nodes.find(n => n.id === e.from);
+                const t = st.nodes.find(n => n.id === e.to); 
+                if (!f || !t) return;
+                
+                const dx = (t.x + 110 * (t.scale || 1)) - (f.x + 110 * (f.scale || 1));
+                const dy = (t.y + 60 * (t.scale || 1)) - (f.y + 60 * (f.scale || 1));
+                const pts = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? ['right', 'left'] : ['left', 'right']) : (dy > 0 ? ['bottom', 'top'] : ['top', 'bottom']);
+                
+                const cv = getBz(getAnch(f, pts[0]), getAnch(t, pts[1]), st.edges.some(ex => ex.from === t.id && ex.to === f.id));
+                const col = e.color || { friend: '#31ce66', hostile: '#f04452', neutral: '#8b95a1', warning: '#f5b014' }[e.type] || '#8b95a1';
+                
+                const p = g.querySelector('.c-ed-ph');
+                const ht = g.querySelector('.edge-hit'); 
+                
+                if(p && ht) {
+                    p.setAttribute('d', cv.d); 
+                    ht.setAttribute('d', cv.d); 
+                    p.style.cssText = `stroke:${col};stroke-dasharray:${e.style === 'dashed' ? '8,8' : 'none'}`;
+                }
+                
+                const defs = document.querySelector('svg#c-ed-ly defs');
+                const mId = `m-${col.replace(/[^a-zA-Z0-9]/g, '')}`; 
+                if (defs && !document.getElementById(mId)) { 
+                    const m = svg('marker', { id: mId, viewBox: '0 0 12 12', refX: 6, refY: 6, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }); 
+                    m.appendChild(svg('path', { d: 'M 0 0 L 12 6 L 0 12 z', fill: col })); 
+                    defs.appendChild(m); 
+                }
+                
+                if(p) {
+                    p.setAttribute('marker-end', `url(#${mId})`); 
+                    if (e.bidi) p.setAttribute('marker-start', `url(#${mId})`); 
+                    else p.removeAttribute('marker-start');
+                }
+                
+                const searchInput = document.getElementById('c-sch');
+                let dim = false, q = searchInput ? searchInput.value.toLowerCase() : ''; 
+                if (q) { 
+                    if (!((f.name||'').toLowerCase().includes(q) || (f.group && f.group.toLowerCase().includes(q))) && !((t.name||'').toLowerCase().includes(q) || (t.group && t.group.toLowerCase().includes(q))) && !(e.label && e.label.toLowerCase().includes(q))) {
+                        dim = true; 
+                    }
+                } else if (sTyp === 'node' && sel.size > 0) { 
+                    if (!sel.has(e.from) && !sel.has(e.to)) dim = true; 
+                }
+                
+                g.style.opacity = dim ? '.15' : '1'; 
+                g.style.pointerEvents = dim ? 'none' : 'auto'; 
+                
+                if(p) {
+                    if (sTyp === 'edge' && sel.has(e.id)) { 
+                        p.classList.add('sel'); p.style.filter = `drop-shadow(0 0 8px ${col})`; 
+                    } else { 
+                        p.classList.remove('sel'); p.style.filter = 'none'; 
+                    }
+                }
+                
+                const lg = g.querySelector('.edge-label-group'); 
+                if (e.label && lg) { 
+                    lg.style.display = 'block'; 
+                    const tx = g.querySelector('.edge-label-text');
+                    const bg = g.querySelector('.edge-label-bg'); 
+                    
+                    if(tx && bg) {
+                        tx.setAttribute('x', cv.mx); 
+                        tx.setAttribute('y', cv.my + 1.5); 
+                        
+                        if (!e._tw || e._cL !== e.label) { 
+                            e._cL = e.label; 
+                            tx.textContent = e.label; 
+                            try { e._tw = tx.getComputedTextLength(); } catch(err) { e._tw = e.label.length * 12.5; } 
+                            e._bw = e._tw + 24; 
+                            e._bh = 24; 
+                        } 
+                        
+                        bg.setAttribute('x', cv.mx - e._bw / 2); 
+                        bg.setAttribute('y', cv.my - e._bh / 2); 
+                        bg.setAttribute('width', e._bw); 
+                        bg.setAttribute('height', e._bh); 
+                        bg.setAttribute('stroke', col); 
+                    }
+                } else if(lg) {
+                    lg.style.display = 'none';
+                }
+            };
+
+            const updANds = () => { 
+                if(st.nodes) st.nodes.forEach(syNd); 
+                if (!mDir) { 
+                    mDir = true; 
+                    requestAnimationFrame(() => { drwBg(); mDir = false; }); 
+                } 
+            };
+            
+            const updAEds = () => {
+                if(st.edges) st.edges.forEach(syEd);
+            };
+            
+            const updVw = () => { 
+                if (els.ly) els.ly.style.transform = `translate(${vw.x}px,${vw.y}px) scale(${vw.z})`; 
+                if (els.gbg) els.gbg.style.transform = `translate(${vw.x * .5}px,${vw.y * .5}px) scale(${vw.z})`; 
+            };
+            
+            const mmv = e => {
+                if (mod === 'pan') { 
+                    vw.x = sVw.x + (e.clientX - sPos.x); 
+                    vw.y = sVw.y + (e.clientY - sPos.y); 
+                    updVw(); 
+                    if (!mDir) { mDir = true; requestAnimationFrame(() => { drwBg(); mDir = false; }); } 
+                }
+                else if (mod === 'drag_node') { 
+                    const cp = sToW(e.clientX, e.clientY);
+                    const dx = cp.x - sPos.x, dy = cp.y - sPos.y; 
+                    
+                    dNds.forEach(d => { 
+                        const n = st.nodes.find(x => x.id === d.id); 
+                        if(n) {
+                            n.x = Math.round((d.x + dx) / 10) * 10; 
+                            n.y = Math.round((d.y + dy) / 10) * 10; 
+                            syNd(n); 
+                        }
+                    }); 
+                    
+                    if (!mDir) { mDir = true; requestAnimationFrame(() => { drwBg(); mDir = false; }); } 
+                    const cn = new Set(dNds.map(n => n.id)); 
+                    st.edges.forEach(ed => { if (cn.has(ed.from) || cn.has(ed.to)) syEd(ed); }); 
+                }
+                else if (mod === 'box_select') { 
+                    const cp = sToW(e.clientX, e.clientY);
+                    const mx = Math.min(sPos.x, cp.x), my = Math.min(sPos.y, cp.y);
+                    const w = Math.abs(cp.x - sPos.x), h = Math.abs(cp.y - sPos.y); 
+                    
+                    if(els.bx) {
+                        els.bx.style.cssText = `display:block;transform:translate(${mx * vw.z + vw.x}px,${my * vw.z + vw.y}px);width:${w * vw.z}px;height:${h * vw.z}px;`; 
+                    }
+                    
+                    sTyp = 'node'; 
+                    sel.clear(); 
+                    st.nodes.forEach(n => { if (n.x > mx && n.x < mx + w && n.y > my && n.y < my + h) sel.add(n.id); }); 
+                    updANds(); 
+                }
+                else if (mod === 'link' && lk) { 
+                    const cp = sToW(e.clientX, e.clientY);
+                    const dx = cp.x - lk.sPt.x, dy = cp.y - lk.sPt.y; 
+                    cp.dx = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : -1) : 0; 
+                    cp.dy = Math.abs(dy) > Math.abs(dx) ? (dy < 0 ? 1 : -1) : 0; 
+                    
+                    const pvw = document.getElementById('c-lk-pv');
+                    if(pvw) pvw.setAttribute('d', getBz(lk.sPt, cp, false).d); 
+                }
+            };
+
+            const setup = () => {
+                const cT = () => window.curTab === 'char';
+                
+                window.addEventListener('keydown', e => { 
+                    if (!cT()) return; 
+                    if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) { spc = true; if(els.vp) els.vp.style.cursor = 'grab'; } 
+                });
+                
+                window.addEventListener('keyup', e => { 
+                    if (!cT()) return; 
+                    if (e.code === 'Space') { spc = false; if (mod === 'idle' && els.vp) els.vp.style.cursor = 'default'; } 
+                });
+                
+                if(els.vp) {
+                    els.vp.onmousedown = e => { 
+                        if (e.target.closest('.c-nd') || e.target.closest('.edge-group')) return; 
+                        if(els.ctxMenu) els.ctxMenu.style.display = 'none'; 
+                        
+                        if (e.button === 1 || e.button === 2 || (e.button === 0 && spc)) { 
+                            if(e.button === 1) e.preventDefault();
+                            mod = 'pan'; sPos = { x: e.clientX, y: e.clientY }; sVw = { ...vw }; els.vp.style.cursor = 'grabbing'; 
+                        } else if (e.button === 0) { 
+                            mod = 'box_select'; sPos = sToW(e.clientX, e.clientY); setSel(null); 
+                        } 
+                    };
+                    
+                    els.vp.ondblclick = e => { 
+                        if (!cT() || e.target.closest('.c-nd') || e.target.closest('.edge-group')) return; 
+                        const p = sToW(e.clientX, e.clientY); window.cA.add(p.x, p.y); 
+                    };
+                    
+                    els.vp.oncontextmenu = e => { 
+                        e.preventDefault(); 
+                        if (!e.target.closest('.c-nd') && !e.target.closest('.edge-group')) showCtx(e, null); 
+                    };
+                    
+                    els.vp.addEventListener('wheel', e => { 
+                        if (!cT()) return; 
+                        e.preventDefault(); 
+                        if(els.ctxMenu) els.ctxMenu.style.display = 'none'; 
+                        
+                        const nz = Math.min(Math.max(vw.z * (1 - e.deltaY * .0015), .1), 3);
+                        const r = els.vp.getBoundingClientRect();
+                        const mx = e.clientX - r.left, my = e.clientY - r.top; 
+                        
+                        vw.x = mx - (mx - vw.x) * (nz / vw.z); 
+                        vw.y = my - (my - vw.y) * (nz / vw.z); 
+                        vw.z = nz; 
+                        
+                        updVw(); 
+                        
+                        if (!mDir) { 
+                            mDir = true; 
+                            requestAnimationFrame(() => { drwBg(); mDir = false; }); 
+                        } 
+                    }, { passive: false });
+                }
+
+                window.addEventListener('mousemove', e => { 
+                    if (!cT() || mod === 'idle') return; 
+                    if (!raf) raf = requestAnimationFrame(() => { mmv(e); raf = null; }); 
+                });
+                
+                window.addEventListener('mouseup', e => { 
+                    if (!cT()) return; 
+                    
+                    if (mod === 'pan') {
+                        if(els.vp) els.vp.style.cursor = spc ? 'grab' : 'default'; 
+                    }
+                    else if (mod === 'drag_node' && dNds.length) {
+                        psHst(); 
+                    }
+                    else if (mod === 'box_select') { 
+                        if(els.bx) els.bx.style.display = 'none'; 
+                        rfUI(); 
+                    }
+                    else if (mod === 'link') { 
+                        const pv = document.getElementById('c-lk-pv'); 
+                        if (pv) pv.remove(); 
+                        
+                        if (lk) {
+                            const tcEl = document.elementFromPoint(e.clientX, e.clientY);
+                            const tc = tcEl ? tcEl.closest('.c-nd') : null;
+                            
+                            if (tc) { 
+                                const tid = tc.id.replace('node-', ''); 
+                                if (tid !== lk.fId) {
+                                    if (!st.edges.some(ex => ex.from === lk.fId && ex.to === tid)) { 
+                                        const ne = { id: 'e' + gId(), from: lk.fId, to: tid, type: 'neutral', label: '', style: 'solid', bidi: false }; 
+                                        st.edges.push(ne); crEd(ne); updAEds(); setSel('edge', ne.id); psHst(); 
+                                    } 
+                                }
+                            }
+                        } 
+                    } 
+                    mod = 'idle'; 
+                });
+                
+                window.addEventListener('keydown', e => { 
+                    if (!cT() || ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return; 
+                    
+                    if (['Delete', 'Backspace'].includes(e.key)) window.cA.delSel(); 
+                    
+                    if (e.ctrlKey || e.metaKey) { 
+                        if (e.key === 'z') { if (hIdx > 0) { ldSt(JSON.parse(hst[--hIdx])); svL(); } } 
+                        if (e.key === 'y' || (e.key === 'Z' && e.shiftKey)) { if (hIdx < hst.length - 1) { ldSt(JSON.parse(hst[++hIdx])); svL(); } } 
+                    } 
+                });
+            };
+
+            const showCtx = (e, tId, t = 'node') => { 
+                ctxT = tId; 
+                let x = e.clientX, y = e.clientY; 
+                if (x + 160 > window.innerWidth) x -= 160; 
+                if (y + 200 > window.innerHeight) y -= 200; 
+                
+                if(els.ctxMenu) {
+                    els.ctxMenu.style.cssText = `display:block;left:${x}px;top:${y}px;`; 
+                }
+                
+                const cxAdd = document.getElementById('cx-add'); if(cxAdd) cxAdd.style.display = tId ? 'none' : 'flex'; 
+                
+                ['cx-dup', 'cx-del', 'cx-d2'].forEach(i => {
+                    const el = document.getElementById(i);
+                    if(el) el.style.display = tId ? 'flex' : 'none';
+                }); 
+                
+                if (tId && t === 'edge') {
+                    const cxDup = document.getElementById('cx-dup');
+                    if(cxDup) cxDup.style.display = 'none'; 
+                }
+                
+                if (tId && !sel.has(tId)) setSel(t, tId); 
+            };
+            
+            const setSel = (t, id, add = false) => { 
+                if (!add) { sel.clear(); sTyp = t; } 
+                if (id) { sTyp = t; sel.add(id); } 
+                
+                updANds(); updAEds(); rfUI(); 
+            };
+            
+            const rdPre = () => { 
+                const c = document.getElementById('c-pre-ls'); 
+                if(!c) return;
+                
+                c.innerHTML = ''; 
+                if (!pre.length) { c.innerHTML = `<span style="font-size:12px;color:var(--txt-mut);">프리셋 없음</span>`; return; } 
+                
+                pre.forEach((p, i) => { 
+                    const b = document.createElement('button'); 
+                    b.className = 'ts-btn'; 
+                    b.style.cssText = `background:${p.color}15;color:${p.color};border:1px solid ${p.color}40;padding:6px 10px;font-size:12px;border-radius:8px;`; 
+                    b.innerHTML = `<span>${p.style === 'dashed' ? '--' : '—'} ${p.label || '이름 없음'}</span>`; 
+                    
+                    b.onclick = () => { 
+                        if (sTyp !== 'edge') return; 
+                        const e = st.edges.find(ex => ex.id === Array.from(sel)[0]); 
+                        if (e) { Object.assign(e, p); rfUI(); syEd(e); psHst(); } 
+                    }; 
+                    
+                    b.oncontextmenu = ev => { 
+                        ev.preventDefault(); 
+                        window.showDlg('삭제', '이 프리셋을 삭제할까요?', true, () => { pre.splice(i, 1); svL(); rdPre(); }); 
+                    }; 
+                    
+                    c.appendChild(b); 
+                }); 
+            };
+            
+            const rfUI = () => {
+                ['c-ins-emp', 'c-ins-nd', 'c-ins-ed'].forEach(i => {
+                    const el = document.getElementById(i);
+                    if(el) el.style.display = 'none';
+                }); 
+                
+                const p = document.getElementById('c-ins');
+                if(!p) return;
+                
+                if (!sel.size) { 
+                    p.style.transform = 'translateX(120%)'; 
+                    const emp = document.getElementById('c-ins-emp'); if(emp) emp.style.display = 'flex'; 
+                }
+                else if (sTyp === 'node') {
+                    p.style.transform = 'translateX(0)'; 
+                    const ndIns = document.getElementById('c-ins-nd'); if(ndIns) ndIns.style.display = 'flex';
+                    
+                    if (sel.size === 1) {
+                        const n = st.nodes.find(x => x.id === Array.from(sel)[0]);
+                        if (n) {
+                            const map = { 'avt': 'avatar', 'nm': 'name', 'grp': 'group', 'col': 'color', 'dsc': 'desc', 'scl': 'scale' };
+                            Object.keys(map).forEach(k => {
+                                const input = document.getElementById(`cp-${k}`);
+                                if(input) input.value = n[map[k]] || (k === 'scl' ? '1.0' : '');
+                            });
+                            
+                            const sclV = document.getElementById('c-scl-v');
+                            if(sclV) sclV.textContent = parseFloat(n.scale || 1).toFixed(1) + 'x';
+                        }
+                    } else {
+                        // Multi-selection (Keep values that are different blank)
+                        ['cp-nm', 'cp-grp', 'cp-dsc'].forEach(k => {
+                            const input = document.getElementById(k);
+                            if(input) input.value = k === 'cp-nm' ? '(다중 선택됨)' : '';
+                        }); 
+                        
+                        const scl = document.getElementById('cp-scl'); if(scl) scl.value = '1.0'; 
+                        const sclV = document.getElementById('c-scl-v'); if(sclV) sclV.textContent = '1.0x';
+                    }
+                } 
+                else if (sTyp === 'edge' && sel.size === 1) {
+                    p.style.transform = 'translateX(0)'; 
+                    const edIns = document.getElementById('c-ins-ed'); if(edIns) edIns.style.display = 'flex';
+                    
+                    const e = st.edges.find(x => x.id === Array.from(sel)[0]);
+                    if (e) {
+                        const lbl = document.getElementById('cp-e-lbl'); if(lbl) lbl.value = e.label || '';
+                        const sty = document.getElementById('cp-e-sty'); if(sty) sty.value = e.style || 'solid';
+                        const bi = document.getElementById('cp-e-bi'); if(bi) bi.value = e.bidi ? 'true' : 'false';
+                        const col = document.getElementById('cp-e-col'); 
+                        if(col) col.value = e.color || { friend: '#31ce66', hostile: '#f04452', neutral: '#8b95a1', warning: '#f5b014' }[e.type] || '#8b95a1';
+                    }
+                }
+            };
+
+            return {
+                init: () => { 
+                    els.vp = document.getElementById('c-vp'); els.ly = document.getElementById('c-ly'); els.nl = document.getElementById('c-nd-ly'); els.el = document.getElementById('c-ed-ly'); 
+                    els.tl = document.getElementById('c-ter-ly'); els.gbg = document.getElementById('c-gbg'); els.bx = document.getElementById('c-sel-box'); els.ctxMenu = document.getElementById('c-ctx'); 
+                    
+                    ldSt(ldL()); setup(); psHst(); rdPre(); 
+                    vw.x = window.innerWidth / 2 - 600; vw.y = window.innerHeight / 2 - 400; updVw(); 
+                },
+                undo: () => { if (hIdx > 0) { ldSt(JSON.parse(hst[--hIdx])); svL(); } }, 
+                redo: () => { if (hIdx < hst.length - 1) { ldSt(JSON.parse(hst[++hIdx])); svL(); } },
+                delSel: () => { 
+                    if (!sel.size) return; 
+                    st.edges = st.edges.filter(e => { 
+                        if (sel.has(e.id) || sel.has(e.from) || sel.has(e.to)) { 
+                            let _em = eMap.get(e.id); if (_em) _em.remove(); eMap.delete(e.id); return false; 
+                        } 
+                        return true; 
+                    }); 
+                    
+                    if (sTyp === 'node') {
+                        st.nodes = st.nodes.filter(n => { 
+                            if (sel.has(n.id)) { 
+                                let _nm = dMap.get(n.id); if (_nm) _nm.remove(); dMap.delete(n.id); return false; 
+                            } 
+                            return true; 
+                        }); 
+                    }
+                    setSel(null); psHst(); updANds(); 
+                },
+                rCol, updVw, drwBg,
+                
+                zoomIn: () => {
+                    vw.z = Math.min(vw.z * 1.2, 3);
+                    updVw();
+                },
+                
+                zoomOut: () => {
+                    vw.z = Math.max(vw.z * 0.8, 0.1);
+                    updVw();
+                },
+                
+                add: (wx, wy) => { 
+                    const posX = wx || (-vw.x + window.innerWidth / 2) / vw.z;
+                    const posY = wy || (-vw.y + window.innerHeight / 2) / vw.z;
+                    
+                    const n = { 
+                        id: 'n' + gId(), 
+                        x: Math.round(posX / 20) * 20 - 110, 
+                        y: Math.round(posY / 20) * 20 - 60, 
+                        name: '새 인물', group: '', color: rCol(), desc: '', avatar: rEmo(), scale: 1 
+                    }; 
+                    st.nodes.push(n); crNd(n); setSel('node', n.id); 
+                    
+                    setTimeout(() => {
+                        const input = document.getElementById('cp-nm'); 
+                        if (input) { input.focus(); input.select(); } 
+                    }, 100); 
+                    
+                    psHst(); updANds(); 
+                },
+                updNd: (field) => { 
+                    if (sTyp !== 'node') return; 
+                    
+                    sel.forEach(id => { 
+                        const n = st.nodes.find(x => x.id === id); 
+                        if(n) {
+                            if (field === 'avatar') n.avatar = document.getElementById('cp-avt').value;
+                            if (field === 'name') n.name = document.getElementById('cp-nm').value;
+                            if (field === 'group') n.group = document.getElementById('cp-grp').value;
+                            if (field === 'color') n.color = document.getElementById('cp-col').value;
+                            if (field === 'desc') n.desc = document.getElementById('cp-dsc').value;
+                            if (field === 'scale') n.scale = parseFloat(document.getElementById('cp-scl').value);
+                            
+                            syNd(n);
+                        }
+                    }); 
+                    updANds(); updAEds(); psHst(); 
+                },
+                updEd: (field) => { 
+                    if (sTyp !== 'edge' || sel.size !== 1) return; 
+                    const e = st.edges.find(x => x.id === Array.from(sel)[0]); 
+                    if(e) {
+                        if(field === 'label') e.label = document.getElementById('cp-e-lbl').value; 
+                        if(field === 'style') e.style = document.getElementById('cp-e-sty').value; 
+                        if(field === 'bidi') e.bidi = document.getElementById('cp-e-bi').value === 'true'; 
+                        if(field === 'color') e.color = document.getElementById('cp-e-col').value; 
+                        syEd(e); psHst(); 
+                    }
+                },
+                setEd: (t, l, cv) => { 
+                    if (sTyp !== 'edge' || sel.size !== 1) return; 
+                    const h = cv.includes('success') ? '#31ce66' : cv.includes('danger') ? '#f04452' : cv.includes('warning') ? '#f5b014' : '#8b95a1';
+                    const e = st.edges.find(x => x.id === Array.from(sel)[0]); 
+                    
+                    if(e) {
+                        e.type = t; 
+                        e.label = e.label || l; 
+                        e.style = t === 'warning' ? 'dashed' : 'solid'; 
+                        e.color = h; 
+                        
+                        const lbl = document.getElementById('cp-e-lbl'), sty = document.getElementById('cp-e-sty'), col = document.getElementById('cp-e-col');
+                        if(lbl) lbl.value = e.label; 
+                        if(sty) sty.value = e.style; 
+                        if(col) col.value = e.color; 
+                        
+                        syEd(e); psHst(); 
+                    }
+                },
+                svPre: () => { 
+                    if (sTyp !== 'edge' || sel.size !== 1) return; 
+                    const e = st.edges.find(x => x.id === Array.from(sel)[0]); 
+                    const col = document.getElementById('cp-e-col');
+                    if(e && col) {
+                        pre.push({ label: e.label, color: col.value, style: e.style, bidi: e.bidi }); 
+                        svL(); rdPre(); 
+                    }
+                },
+                tgTerr: () => { sTerr = !sTerr; drwBg(); svL(); },
+                tidy: () => { 
+                    if (!st.nodes.length) return; 
+                    const gs = {}; 
+                    st.nodes.forEach(n => { const g = n.group || '미소속'; if (!gs[g]) gs[g] = []; gs[g].push(n); }); 
+                    
+                    const ks = Object.keys(gs), cx = window.innerWidth / 2, cy = window.innerHeight / 2; 
+                    if (ks.length === 1) {
+                        gs[ks[0]].forEach((n, i, a) => { 
+                            const an = (i / a.length) * Math.PI * 2, r = Math.max(300, a.length * 80); 
+                            n.x = cx + Math.cos(an) * r - 120; n.y = cy + Math.sin(an) * r - 60; 
+                        }); 
+                    } else {
+                        ks.forEach((k, i, a) => { 
+                            const ga = (i / a.length) * Math.PI * 2, gr = Math.max(500, a.length * 250), gx = cx + Math.cos(ga) * gr, gy = cy + Math.sin(ga) * gr, nd = gs[k]; 
+                            if (nd.length === 1) { 
+                                nd[0].x = gx - 120; nd[0].y = gy - 60; 
+                            } else {
+                                nd.forEach((n, j, na) => { 
+                                    const na2 = (j / na.length) * Math.PI * 2, nr = Math.max(200, na.length * 80); 
+                                    n.x = gx + Math.cos(na2) * nr - 120; n.y = gy + Math.sin(na2) * nr - 60; 
+                                }); 
+                            }
+                        }); 
+                    }
+                    vw.x = 0; vw.y = 0; vw.z = 0.6; updVw(); updANds(); updAEds(); psHst(); 
+                },
+                ctx: a => { 
+                    if(els.ctxMenu) els.ctxMenu.style.display = 'none'; 
+                    if (a === 'add') window.cA.add(); 
+                    else if (a === 'del') window.cA.delSel(); 
+                    else if (a === 'dup' && sTyp === 'node') { 
+                        const ns = []; 
+                        sel.forEach(id => { 
+                            const o = st.nodes.find(x => x.id === id);
+                            if(o) {
+                                const n = { ...o, id: 'n' + gId(), x: o.x + 80, y: o.y + 80 }; 
+                                st.nodes.push(n); crNd(n); ns.push(n.id); 
+                            }
+                        }); 
+                        sel.clear(); ns.forEach(id => sel.add(id)); psHst(); updANds(); 
+                    } 
+                },
+                sch: () => { updANds(); updAEds(); }, 
+                clsIns: () => setSel(null),
+                exp: () => { 
+                    const a = document.createElement('a'); 
+                    a.href = URL.createObjectURL(new Blob([JSON.stringify(st, null, 2)], { type: 'application/json' })); 
+                    a.download = 'character_map.json'; a.click(); 
+                },
+                imp: e => { 
+                    const f = e.target.files[0]; if (!f) return; 
+                    const r = new FileReader(); 
+                    r.onload = ev => { 
+                        try { ldSt(JSON.parse(ev.target.result)); psHst(); } 
+                        catch(err) { window.showDlg('오류', '유효하지 않은 파일입니다.'); } 
+                    }; 
+                    r.readAsText(f); 
+                    e.target.value = ''; 
+                }
+            };
+        })();
+
+        // ==============================================
+        // App 2: Novel Story Node Editor
+        // ==============================================
+        window.nA = (() => {
+            let d = null, sId = null, sEdId = null, els = {}, tck = false;
+            let st = { x: -1000, y: -1800, z: 1, pan: false, drg: null, lk: null, rsz: null, pRs: false, sx: 0, sy: 0, sw: 0, sh: 0 };
+            let pSt = { vars: {}, wt: false, typ: false, tmr: null, txt: "" };
+            const cCols = ['id', 'type', 'speaker', 'text', 'bg', 'char', 'events', 'choices'];
+            
+            const gId = () => 'n_' + Math.random().toString(36).substr(2, 6);
+            const sv = () => localStorage.setItem('wb_nv_d', JSON.stringify(d));
+            
+            const gCrd = e => { 
+                if(!els.cc) return {x:0,y:0};
+                const r = els.cc.getBoundingClientRect(); 
+                return { x: (e.clientX - r.left) / st.z, y: (e.clientY - r.top) / st.z }; 
+            };
+            
+            const gCol = s => { let h = 0; for (let i = 0; i < (s || '').length; i++) h = s.charCodeAt(i) + ((h << 5) - h); return `hsl(${h % 360}, 65%, 45%)`; };
+            const gBz = (x1, y1, x2, y2) => {
+                const ox = Math.max(Math.abs(x2 - x1) * 0.6, 60);
+                return `M ${x1} ${y1} C ${x1 + ox} ${y1}, ${x2 - ox} ${y2}, ${x2} ${y2}`;
+            }
+            
+            const uVw = (forceRedraw = false) => { 
+                if (els.cc) els.cc.style.transform = `translate(${st.x}px,${st.y}px) scale(${st.z})`; 
+                if (forceRedraw) rLk(); 
+            };
+            
+            const rCv = () => {
+                if (!els.nl) return; 
+                els.nl.innerHTML = ''; 
+                const ref = new Set();
+                
+                if(d.nodes) {
+                    d.nodes.forEach(n => {
+                        if(n.choices) {
+                            n.choices.forEach(c => { if(c.next_node) ref.add(c.next_node); });
+                        }
+                    });
+                }
+                
+                const fg = document.createDocumentFragment();
+                
+                if(d.nodes) {
+                    d.nodes.forEach(n => {
+                        const o = (d.nodes.length > 0 && n.id !== d.nodes[0].id) && !ref.has(n.id);
+                        const ct = d.custom_node_types ? d.custom_node_types.find(t => t.id === n.type) : null;
+                        const hs = ct ? `background:${ct.color};color:#191f28;border-bottom:1px solid rgba(0,0,0,.1);` : '';
+                        
+                        let typLbl = '대화';
+                        if (ct) typLbl = ct.name;
+                        else if (n.type === 'happy_end') typLbl = '해피 엔딩';
+                        else if (n.type === 'bad_end') typLbl = '배드 엔딩';
+                        
+                        let h = `
+                            <div class="nv-in-pt"></div>
+                            <div class="node-delete-btn" style="position:absolute; top:-10px; right:-10px; background:var(--dan); color:white; border-radius:50%; width:26px; height:26px; display:none; justify-content:center; align-items:center; cursor:pointer; z-index:35; border:2px solid var(--bg-surf);" onmousedown="window.nA.dNId(event,'${n.id}')"><i class="ph ph-trash"></i></div>
+                            <style>.nv-card:hover .node-delete-btn { display: flex; }</style>
+                            <div class="nv-hd shrink-0" onmousedown="window.nA.sDrg(event,'${n.id}')" style="${hs} padding:12px 16px;border-radius:16px 16px 0 0;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:grab;">
+                                <span class="truncate pr-2">${n.speaker || '이름 없음'}</span>
+                                <span class="text-[10px] bg-black/10 dark:bg-white/20 px-2 py-0.5 rounded font-bold">${typLbl}</span>
+                            </div>
+                            <div class="nv-bd" style="padding:12px 16px;font-size:13px;color:var(--txt-sec);flex:1;display:flex;flex-direction:column;">
+                                <div class="node-dialogue-text thin-scrollbar" style="flex:1;overflow-y:auto;margin-bottom:8px;min-height:20px;">${(n.text || '').substring(0, 80)}${(n.text || '').length > 80 ? '...' : ''}</div>
+                                ${n.events ? `<div class="text-[10px] bg-[#e8f3ff] text-[#3182f6] dark:bg-[#3182f6]/20 px-2.5 py-1.5 mb-1 rounded-lg font-mono font-semibold truncate">⚡ ${n.events}</div>` : ''}
+                                <div class="space-y-1.5 mt-2">
+                        `;
+                        
+                        if(n.choices && !['happy_end', 'bad_end'].includes(n.type)) {
+                            n.choices.forEach((c, i) => { 
+                                const tE = c.next_node && d.nodes.some(x => x.id === c.next_node); 
+                                h += `
+                                    <div class="nv-chc">
+                                        <span class="truncate ${!tE && c.next_node ? 'text-[var(--dan)]' : ''}">${c.text || '빈 선택지'} ${c.condition ? '<i class="ph ph-lock-key text-[#f5b014]"></i>' : ''}</span>
+                                        <div class="nv-pt ${tE ? 'con' : (!tE && c.next_node ? 'err' : '')}" onmousedown="window.nA.sLk(event,'${n.id}',${i})" oncontextmenu="window.nA.dis(event,'${n.id}',${i})"></div>
+                                    </div>
+                                `; 
+                            });
+                        }
+                        
+                        h += `</div></div><div class="resize-handle" style="position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:se-resize;z-index:35;background:linear-gradient(135deg,transparent 50%,var(--bd-col) 50%);border-bottom-right-radius:20px;" onmousedown="window.nA.sRz(event,'${n.id}')"></div>`;
+                        
+                        const el = document.createElement('div'); 
+                        el.className = `nv-card node-type-${n.type} ${sId === n.id ? 'sel' : ''} ${o ? 'orphan' : ''}`; 
+                        el.style.cssText = `left:${n.ui_x}px;top:${n.ui_y}px;width:${n.ui_w || 260}px;height:${n.ui_h ? n.ui_h + 'px' : 'auto'};`; 
+                        el.dataset.id = n.id; 
+                        el.innerHTML = h;
+                        
+                        el.onmousedown = e => { 
+                            if (!e.target.closest('.nv-pt,.node-delete-btn,.resize-handle')) window.nA.sel(n.id, 'node'); 
+                        }; 
+                        
+                        fg.appendChild(el); 
+                    });
+                }
+                els.nl.appendChild(fg); 
+                rLk();
+            };
+
+            const rLk = () => {
+                if (!els.sl) return; 
+                els.sl.querySelectorAll('.edge-group, .connection-line:not(#t-lk)').forEach(p => p.remove()); 
+                
+                // Important: Clean up ghost link line if drag ended but element remains.
+                if (!st.lk) {
+                    const tlk = document.getElementById('t-lk');
+                    if (tlk) tlk.remove();
+                }
+                
+                if (els.cc && els.cc.offsetWidth === 0) return;
+                
+                const fg = document.createDocumentFragment();
+                
+                if(d.nodes) {
+                    d.nodes.forEach(sn => { 
+                        if(sn.choices) {
+                            sn.choices.forEach((c, i) => { 
+                                if (!c.next_node) return; 
+                                
+                                const tn = d.nodes.find(x => x.id === c.next_node);
+                                const spList = document.querySelectorAll(`.nv-card[data-id="${sn.id}"] .nv-chc .nv-pt`);
+                                const sp = spList.length > i ? spList[i] : null;
+                                const tp = tn ? document.querySelector(`.nv-card[data-id="${tn.id}"] .nv-in-pt`) : null;
+                                
+                                if (sp && (tp || !tn)) { 
+                                    const r1 = sp.getBoundingClientRect();
+                                    const s = gCrd({ clientX: r1.left + 7, clientY: r1.top + 7 }); 
+                                    let e; 
+                                    
+                                    if (tp) { 
+                                        const r2 = tp.getBoundingClientRect(); 
+                                        e = gCrd({ clientX: r2.left + 8, clientY: r2.top + 8 }); 
+                                    } else { 
+                                        e = { x: s.x + 80, y: s.y + 30 }; 
+                                    }
+                                    
+                                    const edgeId = `ned|${sn.id}|${i}`;
+                                    const isSel = sEdId === edgeId;
+                                    
+                                    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                                    g.setAttribute("class", "edge-group cursor-pointer");
+                                    g.onmousedown = ev => { ev.stopPropagation(); window.nA.sel(edgeId, 'edge'); };
+                                    g.oncontextmenu = ev => { ev.preventDefault(); ev.stopPropagation(); window.nA.dis(ev, sn.id, i); };
+                                    
+                                    const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                                    hit.setAttribute("d", gBz(s.x, s.y, e.x, e.y));
+                                    hit.setAttribute("class", "edge-hit");
+                                    hit.setAttribute("fill", "none");
+                                    hit.setAttribute("stroke", "transparent");
+                                    hit.setAttribute("stroke-width", "24");
+                                    
+                                    const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
+                                    p.setAttribute("d", gBz(s.x, s.y, e.x, e.y)); 
+                                    p.setAttribute("class", `connection-line c-ed-ph ${!tn ? 'stroke-[var(--dan)]' : (isSel ? 'stroke-[var(--pri)]' : 'stroke-[var(--txt-mut)]')} ${isSel ? 'sel' : ''}`); 
+                                    if(isSel) { p.style.stroke = "var(--pri)"; }
+                                    p.setAttribute("marker-end", `url(#${!tn ? 'ah-err' : (isSel ? 'ah-act' : 'ah')})`); 
+                                    
+                                    g.appendChild(hit);
+                                    g.appendChild(p);
+                                    fg.appendChild(g); 
+                                } 
+                            });
+                        }
+                    });
+                }
+                
+                if (st.lk && !document.getElementById('t-lk')) { 
+                    const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
+                    p.id = "t-lk"; p.setAttribute("d", ""); 
+                    p.setAttribute("class", "connection-line c-ed-ph stroke-[var(--pri)]"); 
+                    p.setAttribute("marker-end", "url(#ah-act)"); 
+                    fg.appendChild(p); 
+                }
+                els.sl.appendChild(fg);
+            };
+
+            const rIns = () => {
+                const emp = document.getElementById('n-emp');
+                const ed = document.getElementById('n-ed');
+                
+                if (!sId) { 
+                    if(emp) emp.style.display = 'flex'; 
+                    if(ed) ed.classList.add('hidden'); 
+                    return; 
+                }
+                
+                const n = d.nodes.find(x => x.id === sId); 
+                if(!n) return;
+                
+                if(emp) emp.style.display = 'none'; 
+                if(ed) ed.classList.remove('hidden'); 
+                
+                const idInput = document.getElementById('np-id'); if(idInput) idInput.value = n.id;
+                const typSelect = document.getElementById('np-typ'); 
+                
+                if(typSelect) {
+                    typSelect.innerHTML = `<option value="dialogue">대화 노드</option><option value="happy_end">해피 엔딩</option><option value="bad_end">배드 엔딩</option>${(d.custom_node_types||[]).map(t => `<option value="${t.id}">${t.name}</option>`).join('')}`; 
+                    typSelect.value = n.type;
+                }
+                
+                ['spk', 'txt', 'bg', 'chr', 'evt'].forEach(k => { 
+                    const kk = k === 'spk' ? 'speaker' : k === 'txt' ? 'text' : k === 'chr' ? 'character' : k === 'evt' ? 'events' : k; 
+                    const input = document.getElementById('np-' + k);
+                    if(input) {
+                        input.value = (k === 'bg' || k === 'chr') ? (n.visuals && n.visuals[kk] ? n.visuals[kk] : '') : (n[kk] || ''); 
+                    }
+                });
+                
+                renderInspectorChoices(n);
+            };
+
+            const renderInspectorChoices = (n) => {
+                const c = document.getElementById('n-ch-box'); 
+                if(!c) return;
+                
+                if (['happy_end', 'bad_end'].includes(n.type)) { 
+                    c.innerHTML = '<div class="p-4 text-center text-[13.5px] border border-[var(--bd-col)] rounded-xl text-[var(--txt-mut)] bg-[var(--in-bg)] font-medium">엔딩 노드는 선택지를 가질 수 없습니다.</div>'; 
+                    return; 
+                }
+                
+                if (!n.choices || !n.choices.length) { 
+                    c.innerHTML = '<p class="text-[13.5px] text-center text-[var(--txt-mut)] py-6 font-medium">아직 선택지가 없습니다.<br>추가 버튼을 눌러주세요.</p>'; 
+                    return; 
+                }
+                
+                c.innerHTML = n.choices.map((ch, i) => `
+                    <div class="bg-[var(--bg-base)] p-4 rounded-[14px] border border-[var(--bd-col)] relative group animate-pop" style="animation-delay:${i*0.05}s">
+                        <button onclick="window.nA.rmCh(${i})" class="absolute top-4 right-4 text-[var(--dan)] opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--bg-surf)] rounded-md p-1 shadow-sm border border-[var(--bd-col)]"><i class="ph ph-trash"></i></button>
+                        <input type="text" value="${ch.text || ''}" oninput="window.nA.uChT(${i},this.value)" class="ts-in mb-3 py-2 px-1 bg-transparent border-b border-[var(--bd-col)] rounded-none focus:border-b-[var(--pri)] focus:shadow-none text-[14px] font-bold placeholder-[var(--txt-mut)]" placeholder="선택지 텍스트를 입력하세요">
+                        <div class="flex flex-col gap-2 mt-2">
+                            <div class="flex items-center gap-2">
+                                <i class="ph ph-link text-[var(--txt-mut)]"></i>
+                                <input type="text" value="${ch.next_node || ''}" readonly class="ts-in text-[12px] py-1.5 px-3 bg-[var(--bg-surf)] text-[var(--txt-mut)] border border-[var(--bd-col)] cursor-not-allowed" placeholder="캔버스에서 포트를 드래그하여 연결">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="ph ph-code text-[var(--txt-mut)]"></i>
+                                <input type="text" value="${ch.condition || ''}" oninput="window.nA.uChC(${i},this.value)" class="ts-in text-[12px] py-1.5 px-3 bg-[var(--bg-surf)] border border-[var(--bd-col)]" placeholder="출현 조건 (예: has_key)">
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            const rPv = () => {
+                if (!sId) return; 
+                const n = d.nodes.find(x => x.id === sId);
+                if(!n) return;
+                
+                const u = s => typeof s === 'string' && /^http|data:image/.test(s.trim());
+                const b = document.getElementById('pv-bg'), c = document.getElementById('pv-chr');
+                
+                if(b) {
+                    if (n.visuals && u(n.visuals.background)) { 
+                        b.style.background = `url('${n.visuals.background}') center/cover`; 
+                        b.innerHTML = ''; 
+                    } else { 
+                        const bgColStr = n.visuals && n.visuals.background ? n.visuals.background : '';
+                        if(bgColStr.trim() === '') {
+                            b.style.background = 'transparent';
+                            b.innerHTML = '';
+                        } else {
+                            b.style.background = gCol(bgColStr); 
+                            b.innerHTML = `<div class="w-full h-full flex items-center justify-center font-bold opacity-40 text-xl text-white mix-blend-overlay">${bgColStr}</div>`; 
+                        }
+                    }
+                }
+                
+                if (c) { 
+                    if (n.visuals && u(n.visuals.character)) { 
+                        c.innerHTML = `<img src="${n.visuals.character}" class="max-h-full object-contain drop-shadow-2xl">`; 
+                        c.style.opacity = '1'; 
+                    } else if (n.visuals?.character) { 
+                        c.innerHTML = `<div class="w-full h-full flex items-center justify-center font-bold text-xl text-white bg-black/50 rounded-t-xl backdrop-blur-sm border-t border-x border-white/20">${n.visuals.character}</div>`; 
+                        c.style.opacity = '1'; 
+                    } else { 
+                        c.innerHTML = ''; c.style.opacity = '0'; 
+                    } 
+                }
+                
+                const spk = document.getElementById('pv-spk'); if(spk) spk.innerText = n.speaker || '이름 없음'; 
+                const txt = document.getElementById('pv-txt'); if(txt) txt.innerText = n.text || '...';
+            };
+
+            const stEv = () => {
+                const w = els.cw; if (!w) return; 
+                const aT = () => window.curTab === 'novel';
+                
+                w.addEventListener('wheel', e => { 
+                    if (!aT() || e.ctrlKey) return; 
+                    e.preventDefault(); 
+                    if (!tck) { 
+                        requestAnimationFrame(() => { 
+                            const z = Math.min(Math.max(st.z * (e.deltaY > 0 ? .9 : 1.1), .2), 3);
+                            const r = w.getBoundingClientRect();
+                            const mx = e.clientX - r.left;
+                            const my = e.clientY - r.top; 
+                            
+                            st.x = mx - (mx - st.x) * (z / st.z); 
+                            st.y = my - (my - st.y) * (z / st.z); 
+                            st.z = z; 
+                            
+                            uVw(); 
+                            tck = false; 
+                        }); 
+                        tck = true; 
+                    } 
+                }, { passive: false });
+                
+                window.addEventListener('mousemove', e => { 
+                    if (!aT()) return; 
+                    if (!tck && (st.drg || st.rsz || st.pRs || st.lk || st.pan)) { 
+                        requestAnimationFrame(() => { 
+                            if (st.drg) { 
+                                const n = d.nodes.find(x => x.id === st.drg); 
+                                if(n) {
+                                    n.ui_x += (e.clientX - st.sx) / st.z; 
+                                    n.ui_y += (e.clientY - st.sy) / st.z; 
+                                    const el = document.querySelector(`.nv-card[data-id="${n.id}"]`); 
+                                    if (el) el.style.cssText += `left:${n.ui_x}px;top:${n.ui_y}px;`; 
+                                    st.sx = e.clientX; st.sy = e.clientY; 
+                                    rLk(); 
+                                }
+                            } else if (st.rsz) { 
+                                const n = d.nodes.find(x => x.id === st.rsz); 
+                                if(n) {
+                                    n.ui_w = Math.max(260, st.sw + (e.clientX - st.sx) / st.z); 
+                                    n.ui_h = Math.max(120, st.sh + (e.clientY - st.sy) / st.z); 
+                                    const el = document.querySelector(`.nv-card[data-id="${n.id}"]`); 
+                                    if (el) { el.style.width = `${n.ui_w}px`; el.style.height = `${n.ui_h}px`; } 
+                                    rLk(); 
+                                }
+                            } else if (st.pRs) { 
+                                const rp = document.getElementById('n-rp');
+                                if (rp) rp.style.width = `${Math.max(340, Math.min(window.innerWidth * .6, st.sw + (st.sx - e.clientX)))}px`; 
+                            } else if (st.lk) { 
+                                const c = gCrd(e), tp = document.getElementById('t-lk'); 
+                                if (tp) tp.setAttribute("d", gBz(st.lk.sx, st.lk.sy, c.x, c.y)); 
+                                
+                                document.querySelectorAll('.hov').forEach(el => el.classList.remove('hov')); 
+                                const tcEl = document.elementFromPoint(e.clientX, e.clientY);
+                                const tc = tcEl ? tcEl.closest('.nv-card') : null;
+                                
+                                if (tc && tc.dataset.id !== st.lk.id) tc.classList.add('hov'); 
+                            } else if (st.pan) { 
+                                st.x = st.sw + (e.clientX - st.sx); 
+                                st.y = st.sh + (e.clientY - st.sy); 
+                                uVw(); 
+                            } 
+                            tck = false; 
+                        }); 
+                        tck = true; 
+                    } 
+                });
+                
+                window.addEventListener('mouseup', e => { 
+                    if (!aT()) return; 
+                    if (st.drg || st.rsz) { st.drg = null; st.rsz = null; sv(); } 
+                    if (st.pan) { st.pan = false; if(els.cw) els.cw.style.cursor = 'default'; }
+                    if (st.pRs) { st.pRs = false; const rsz = document.getElementById('n-rsz'); if(rsz) rsz.classList.remove('active'); rPv(); } 
+                    
+                    if (st.lk) { 
+                        const tcEl = document.elementFromPoint(e.clientX, e.clientY);
+                        const tc = tcEl ? tcEl.closest('.nv-card') : null;
+                        const sn = d.nodes.find(x => x.id === st.lk.id); 
+                        
+                        if (sn && sn.choices && sn.choices[st.lk.idx]) {
+                            sn.choices[st.lk.idx].next_node = (tc && tc.dataset.id !== sn.id) ? tc.dataset.id : ""; 
+                        }
+                        st.lk = null; 
+                        
+                        const tlk = document.getElementById('t-lk');
+                        if (tlk) tlk.remove();
+                        document.querySelectorAll('.hov').forEach(el => el.classList.remove('hov'));
+                        
+                        rCv(); rIns(); sv(); 
+                    } 
+                });
+                
+                w.addEventListener('mousedown', e => { 
+                    if (['n-vp', 'n-ly', 'n-ed-ly'].includes(e.target.id) || e.button === 1) { 
+                        if(e.button === 1) e.preventDefault(); 
+                        st.pan = true; st.sx = e.clientX; st.sy = e.clientY; st.sw = st.x; st.sh = st.y; 
+                        if(els.cw) els.cw.style.cursor = 'grabbing';
+                        if (sId || sEdId) window.nA.sel(null, null); 
+                    } 
+                });
+                
+                w.addEventListener('dblclick', e => { 
+                    if (!aT() || e.target.closest('.nv-card')) return; 
+                    const c = gCrd(e); window.nA.addA(c.x, c.y); 
+                });
+                
+                window.addEventListener('keydown', e => { 
+                    if (!aT() || ['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return; 
+                    if (['Delete', 'Backspace'].includes(e.key)) window.nA.delNd(); 
+                });
+            };
+
+            return {
+                init: () => {
+                    els.cw = document.getElementById('n-vp'); els.cc = document.getElementById('n-ly'); els.sl = document.getElementById('n-ed-ly'); 
+                    els.nl = document.getElementById('n-nd-ly'); els.rp = document.getElementById('n-rp'); els.rsz = document.getElementById('n-rsz');
+                    
+                    const bx = document.getElementById('csv-bx');
+                    if(bx) bx.innerHTML = cCols.map(c => `<label class="flex items-center gap-3 mb-3"><input type="checkbox" id="c-${c}" checked class="w-[18px] h-[18px] rounded border-[var(--bd-col)] text-[var(--pri)] focus:ring-[var(--pri)] cursor-pointer"><span class="font-semibold text-[14.5px] text-[var(--txt-pri)] cursor-pointer">${c.toUpperCase()}</span></label>`).join('');
+                    
+                    try { 
+                        const l = localStorage.getItem('wb_nv_d'); 
+                        d = l ? JSON.parse(l) : JSON.parse(JSON.stringify({ 
+                            project_name: "Nvl", custom_node_types: [{ id: "t_evt", name: "✨ 퀘스트", color: "#e8f3ff" }], 
+                            nodes: [
+                                { id: "n1", type: "dialogue", speaker: "마을 촌장", text: "북쪽 숲 보물을 찾아주게.", visuals: { background: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80", character: "https://api.dicebear.com/7.x/adventurer/svg?seed=v" }, events: "", choices: [{ text: "숲으로 간다", next_node: "n2", condition: "" }, { text: "마왕성 간다", next_node: "n3", condition: "" }], ui_x: 2000, ui_y: 2500, ui_w: 280 }, 
+                                { id: "n2", type: "t_evt", speaker: "시스템", text: "[성검]을 획득했습니다!", visuals: { background: "https://images.unsplash.com/photo-1542224566-6e85f2e6772f?auto=format&fit=crop&w=800&q=80" }, events: "has_sword = true", choices: [{ text: "마왕성 간다", next_node: "n3", condition: "" }], ui_x: 2400, ui_y: 2300, ui_w: 280 }, 
+                                { id: "n3", type: "dialogue", speaker: "마왕", text: "덤벼라!", visuals: { background: "https://images.unsplash.com/photo-1505635552518-3448ff116af3?auto=format&fit=crop&w=800&q=80", character: "https://api.dicebear.com/7.x/bottts/svg?seed=d" }, events: "", choices: [{ text: "맨손 공격", next_node: "n4", condition: "" }, { text: "[히든] 성검 공격", next_node: "n5", condition: "has_sword == true" }], ui_x: 2400, ui_y: 2750, ui_w: 280 }, 
+                                { id: "n4", type: "bad_end", speaker: "시스템", text: "패배...", visuals: {}, events: "", choices: [], ui_x: 2800, ui_y: 2900, ui_w: 260 }, 
+                                { id: "n5", type: "happy_end", speaker: "시스템", text: "승리!", visuals: { background: "https://images.unsplash.com/photo-1601662528567-526cd06f6582?auto=format&fit=crop&w=800&q=80" }, events: "", choices: [], ui_x: 2800, ui_y: 2500, ui_w: 260 }
+                            ] 
+                        })); 
+                    } catch(e) { 
+                        d = { custom_node_types: [], nodes: [] }; 
+                    }
+                    
+                    if (!d.custom_node_types) d.custom_node_types = []; 
+                    stEv(); 
+                    st.x = window.innerWidth / 2 - 2400; 
+                    st.y = window.innerHeight / 2 - 2500; 
+                    uVw(); 
+                    window.nA.rAll();
+                },
+                updVw: uVw, 
+                rAll: () => { rCv(); rIns(); rPv(); sv(); },
+                
+                tgMod: id => { 
+                    const e = document.getElementById(id); 
+                    if(!e) return;
+                    if (e.classList.contains('hidden')) { 
+                        e.classList.remove('hidden'); e.style.display = 'flex'; 
+                    } else { 
+                        e.classList.add('hidden'); e.style.display = 'none'; 
+                        if (id === 'n-ply') clearInterval(pSt.tmr); 
+                    } 
+                },
+                
+                sel: (id, type='node') => { 
+                    if (type === 'node') {
+                        if (sId === id && !sEdId) return; 
+                        if (sId) { const o = document.querySelector(`.nv-card[data-id="${sId}"]`); if (o) o.classList.remove('sel'); } 
+                        sId = id; sEdId = null;
+                        if (id) { const n = document.querySelector(`.nv-card[data-id="${id}"]`); if (n) n.classList.add('sel'); } 
+                        rIns(); rPv(); rLk();
+                    } else if (type === 'edge') {
+                        if (sEdId === id) return;
+                        if (sId) { const o = document.querySelector(`.nv-card[data-id="${sId}"]`); if (o) o.classList.remove('sel'); } 
+                        sId = null; sEdId = id;
+                        rIns(); rPv(); rLk();
+                    } else {
+                        if (sId) { const o = document.querySelector(`.nv-card[data-id="${sId}"]`); if (o) o.classList.remove('sel'); } 
+                        sId = null; sEdId = null;
+                        rIns(); rPv(); rLk();
+                    }
+                },
+                
+                zoomIn: () => {
+                    st.z = Math.min(st.z * 1.2, 3);
+                    uVw();
+                },
+                
+                zoomOut: () => {
+                    st.z = Math.max(st.z * 0.8, 0.1);
+                    uVw();
+                },
+                
+                addA: (x, y) => { 
+                    const n = { id: gId(), type: "dialogue", choices: [], ui_x: x - 130, ui_y: y - 60 }; 
+                    if(!d.nodes) d.nodes = [];
+                    d.nodes.push(n); rCv(); window.nA.sel(n.id, 'node'); sv(); 
+                    
+                    setTimeout(() => {
+                        const spkInput = document.getElementById('np-spk');
+                        if (spkInput) { spkInput.focus(); spkInput.select(); }
+                    }, 50);
+                }, 
+                
+                add: () => { 
+                    const x = (-st.x + window.innerWidth / 2) / st.z;
+                    const y = (-st.y + window.innerHeight / 2) / st.z; 
+                    window.nA.addA(x, y); 
+                },
+                
+                dNId: (e, id) => { 
+                    if (e) { e.preventDefault(); e.stopPropagation(); } 
+                    window.showDlg("삭제", "이 노드를 삭제할까요?", true, () => { 
+                        d.nodes = d.nodes.filter(n => n.id !== id); 
+                        d.nodes.forEach(n => { if (n.choices) n.choices.forEach(c => { if (c.next_node === id) c.next_node = ""; }); }); 
+                        if (sId === id) sId = null; 
+                        window.nA.rAll(); 
+                    }); 
+                }, 
+                
+                delNd: () => { 
+                    if (sId) {
+                        window.nA.dNId(null, sId); 
+                    } else if (sEdId) {
+                        const parts = sEdId.split('|');
+                        const nId = parts[1];
+                        const cIdx = parseInt(parts[2], 10);
+                        const n = d.nodes.find(x => x.id === nId);
+                        if (n && n.choices && n.choices[cIdx]) {
+                            n.choices[cIdx].next_node = "";
+                            sEdId = null;
+                            window.nA.rAll();
+                        }
+                    }
+                },
+                sDrg: (e, id) => { if (e.button !== 0) return; e.preventDefault(); window.nA.sel(id, 'node'); st.drg = id; st.sx = e.clientX; st.sy = e.clientY; }, 
+                sRz: (e, id) => { if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); const n = document.querySelector(`.nv-card[data-id="${id}"]`); if(n){ st.rsz = id; st.sx = e.clientX; st.sy = e.clientY; st.sw = n.offsetWidth; st.sh = n.offsetHeight; } },
+                sLk: (e, id, idx) => { if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); const p = e.target.getBoundingClientRect(), s = gCrd({ clientX: p.left + 7, clientY: p.top + 7 }); st.lk = { id, idx, sx: s.x, sy: s.y }; rLk(); },
+                dis: (e, id, idx) => { e.preventDefault(); e.stopPropagation(); const n = d.nodes.find(x => x.id === id); if (n && n.choices && n.choices[idx]) { n.choices[idx].next_node = ""; rCv(); rIns(); sv(); } },
+                
+                rz: () => {
+                    st.x = window.innerWidth / 2 - 2400; 
+                    st.y = window.innerHeight / 2 - 2500; 
+                    st.z = 1;
+                    window.nA.updVw();
+                },
+                
+                updNd: (field) => { 
+                    if (!sId) return; 
+                    const n = d.nodes.find(x => x.id === sId); 
+                    if(!n) return;
+                    
+                    if (field === 'type') {
+                        const t = document.getElementById('np-typ'); 
+                        if (t) {
+                            const oldType = n.type;
+                            n.type = t.value; 
+                            if (n.type === 'happy_end' || n.type === 'bad_end') {
+                                n.choices = []; 
+                            }
+                            if (oldType !== n.type) {
+                                window.nA.rAll();
+                                return;
+                            }
+                        }
+                    }
+                    
+                    if(field === 'spk') { const s = document.getElementById('np-spk'); if(s) n.speaker = s.value; }
+                    if(field === 'txt') { const tx = document.getElementById('np-txt'); if(tx) n.text = tx.value; }
+                    if(field === 'evt') { const ev = document.getElementById('np-evt'); if(ev) n.events = ev.value; }
+                    
+                    if (!n.visuals) n.visuals = {}; 
+                    if(field === 'bg') { const bg = document.getElementById('np-bg'); if(bg) n.visuals.background = bg.value; }
+                    if(field === 'chr') { const ch = document.getElementById('np-chr'); if(ch) n.visuals.character = ch.value; }
+                    
+                    const el = document.querySelector(`.nv-card[data-id="${n.id}"]`); 
+                    if (el) { 
+                        const dTxt = el.querySelector('.node-dialogue-text');
+                        if(dTxt) dTxt.innerText = (n.text || '').substring(0, 80) + ((n.text || '').length > 80 ? '...' : ''); 
+                        const tSpn = el.querySelector('span.truncate');
+                        if(tSpn) tSpn.innerText = n.speaker || '이름 없음'; 
+                    } 
+                    
+                    rPv(); 
+                    sv(); 
+                    rLk(); // Update edges in case height changes
+                },
+                
+                addCh: () => { const n = d.nodes.find(x => x.id === sId); if (n) { if (!n.choices) n.choices = []; n.choices.push({ text: "새 선택지", next_node: "", condition: "" }); rCv(); renderInspectorChoices(n); sv(); } }, 
+                rmCh: i => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices) { n.choices.splice(i, 1); rCv(); renderInspectorChoices(n); sv(); } },
+                uChT: (i, v) => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices && n.choices[i]) { n.choices[i].text = v; const l = document.querySelector(`.nv-card[data-id="${n.id}"] .nv-chc:nth-child(${i + 1}) span`); if (l) l.innerHTML = `${v || '빈 선택지'} ${n.choices[i].condition ? '<i class="ph ph-lock-key text-[#f5b014]"></i>' : ''}`; sv(); } }, 
+                uChC: (i, v) => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices && n.choices[i]) { n.choices[i].condition = v; rCv(); sv(); } },
+                
+                rTmLs: () => { 
+                    const c = document.getElementById('tm-ls'); 
+                    if(!c) return;
+                    if (!d.custom_node_types || !d.custom_node_types.length) { c.innerHTML = '<p class="text-[13.5px] text-center text-[var(--txt-mut)] py-6 font-medium">추가된 테마가 없습니다.</p>'; return; } 
+                    c.innerHTML = d.custom_node_types.map((t, i) => `<div class="flex justify-between bg-[var(--bg-surf)] p-3.5 rounded-xl border border-[var(--bd-col)] items-center shadow-sm"><div class="flex items-center gap-3"><div class="w-5 h-5 rounded-[6px] border border-black/10" style="background:${t.color}"></div><span class="text-[14.5px] font-bold text-[var(--txt-pri)]">${t.name}</span></div><button onclick="window.nA.rmTm(${i})" class="text-[var(--txt-mut)] hover:text-[var(--dan)] transition-colors"><i class="ph ph-trash text-xl"></i></button></div>`).join(''); 
+                },
+                addTm: () => { 
+                    const nm = document.getElementById('tm-nm');
+                    if(!nm) return;
+                    const n = nm.value.trim(); 
+                    if (!n) return window.showDlg("오류", "이름 입력"); 
+                    if(!d.custom_node_types) d.custom_node_types = [];
+                    const cl = document.getElementById('tm-col');
+                    d.custom_node_types.push({ id: gId(), name: n, color: cl ? cl.value : '#3182f6' }); 
+                    window.nA.rTmLs(); 
+                    rIns(); 
+                    sv(); 
+                    nm.value = ''; 
+                }, 
+                rmTm: i => { 
+                    if(!d.custom_node_types || !d.custom_node_types[i]) return;
+                    const id = d.custom_node_types[i].id; 
+                    if(d.nodes) {
+                        d.nodes.forEach(n => { if (n.type === id) n.type = 'dialogue'; }); 
+                    }
+                    d.custom_node_types.splice(i, 1); 
+                    window.nA.rTmLs(); 
+                    window.nA.rAll(); 
+                },
+                
+                play: () => { 
+                    if (!d.nodes || !d.nodes.length) return window.showDlg("오류", "노드가 없습니다. 스토리를 구성해주세요."); 
+                    pSt.vars = {}; 
+                    d.nodes.forEach(n => { 
+                        (n.events || '').split('\n').forEach(l => { const p = l.split('=')[0]; const k = p ? p.trim() : ''; if (k) pSt.vars[k] = false; }); 
+                        (n.choices || []).forEach(c => { const m = (c.condition || '').match(/[a-zA-Z_]\w*/g); if (m) m.forEach(w => { if (!['true', 'false'].includes(w)) pSt.vars[w] = false; }); }); 
+                    }); 
+                    const rf = new Set(); 
+                    d.nodes.forEach(n => { if(n.choices) n.choices.forEach(c => { if (c.next_node) rf.add(c.next_node); }); }); 
+                    
+                    const stN = d.nodes.find(n => !rf.has(n.id)) || d.nodes[0]; 
+                    window.nA.tgMod('n-ply'); window.nA.rPlNd(stN.id); 
+                },
+                
+                eCnd: c => { 
+                    if (!c) return true; 
+                    try { return new Function(...Object.keys(pSt.vars), `try{return !!(${c});}catch(e){return false;}`)(...Object.values(pSt.vars)); } 
+                    catch(e) { return false; } 
+                },
+                
+                rPlNd: id => { 
+                    const n = d.nodes.find(x => x.id === id), c = document.getElementById('pl-chc'); 
+                    if(!c) return;
+                    clearInterval(pSt.tmr); 
+                    c.style.display = 'none'; 
+                    const cov = document.getElementById('pl-cov'); if(cov) cov.classList.remove('hidden'); 
+                    
+                    if (!n) { 
+                        c.innerHTML = `<div class="text-white font-bold bg-[var(--dan)] p-6 rounded-[20px] mb-5 text-[18px] text-center shadow-xl border border-white/20 backdrop-blur-md">오류: 연결된 노드 없음</div><button onclick="window.nA.play()" class="ts-btn bg-[var(--pri)] text-white px-10 py-4 text-[16px] rounded-2xl hover:scale-105 transition-transform shadow-lg">처음부터 다시</button>`; 
+                        const pt = document.getElementById('pl-txt'); if(pt) pt.innerText = '진행 불가'; 
+                        if(cov) cov.classList.add('hidden'); 
+                        c.style.display = 'flex'; 
+                        return; 
+                    } 
+                    
+                    (n.events || '').split('\n').forEach(l => { 
+                        const p = l.split('='); 
+                        if (p.length >= 2) { 
+                            const k = p[0].trim(), v = p.slice(1).join('=').trim(); 
+                            if (k && v) pSt.vars[k] = v === 'true' ? true : v === 'false' ? false : !isNaN(v) ? Number(v) : v.replace(/['"]/g, ''); 
+                        } 
+                    }); 
+                    
+                    const pv = document.getElementById('pl-var');
+                    if(pv) pv.innerHTML = Object.entries(pSt.vars).map(([k, v]) => `<div class="flex justify-between py-1.5 border-b border-white/10 last:border-none"><span class="text-white/90">${k}</span><span class="font-bold ${v === true ? 'text-[var(--suc)]' : 'text-[var(--dan)]'}">${v}</span></div>`).join(''); 
+                    
+                    const iu = s => typeof s === 'string' && /^http|data:image/.test(s.trim()), pb = document.getElementById('pl-bg'); 
+                    if(pb) {
+                        const bgStr = n.visuals?.background || '';
+                        if (iu(bgStr)) { 
+                            pb.style.background = `url('${bgStr}') center/cover`; 
+                            pb.innerHTML = ''; 
+                        } else if(bgStr.trim() === '') {
+                            pb.style.background = 'transparent';
+                            pb.innerHTML = '';
+                        } else { 
+                            pb.style.background = gCol(bgStr); 
+                            pb.innerHTML = `<div class="w-full h-full flex items-center justify-center font-bold opacity-30 text-2xl text-white mix-blend-overlay">${bgStr}</div>`; 
+                        } 
+                    }
+                    
+                    const pc = document.getElementById('pl-chr');
+                    if(pc) {
+                        pc.innerHTML = iu(n.visuals?.character) ? `<img src="${n.visuals.character}" class="max-h-[95%] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]">` : ''; 
+                    }
+                    
+                    const sp = document.getElementById('pl-spk'); if(sp) sp.innerText = n.speaker || ' '; 
+                    
+                    pSt.txt = n.text || ''; pSt.type = true; pSt.wait = true; 
+                    const pt = document.getElementById('pl-txt'); 
+                    if(pt) {
+                        pt.innerText = ''; 
+                        let idx = 0; 
+                        pSt.tmr = setInterval(() => { 
+                            pt.innerText = pSt.txt.substring(0, ++idx); 
+                            if (idx >= pSt.txt.length) window.nA.adv(true); 
+                        }, 35); 
+                    }
+                    
+                    if (['happy_end', 'bad_end'].includes(n.type)) { 
+                        c.innerHTML = `<button onclick="window.nA.play()" class="bg-[var(--pri)] text-white font-bold py-5 px-14 rounded-[20px] text-[18px] shadow-[0_10px_30px_rgba(49,130,246,0.4)] hover:scale-105 transition-all">처음부터 다시 플레이하기</button>`; 
+                    } else { 
+                        const vc = (n.choices || []).filter(x => window.nA.eCnd(x.condition)); 
+                        c.innerHTML = vc.map((x, i) => `<button onclick="window.nA.rPlNd('${x.next_node}')" class="bg-black/70 backdrop-blur-xl text-white px-8 py-5 rounded-[20px] w-[85%] max-w-[700px] border border-white/20 hover:bg-black/90 font-bold text-[17px] transition-all transform hover:scale-[1.02] shadow-xl text-left animate-pop" style="animation-delay:${i*0.1}s"><span class="text-[var(--pri)] mr-2.5">▶</span> ${x.text}</button>`).join('') || `<button onclick="window.nA.play()" class="bg-[#1c212a]/90 backdrop-blur-md border border-white/10 text-white p-6 rounded-[20px] font-bold text-[17px] shadow-2xl hover:bg-black transition-colors">선택지가 없습니다. 처음으로 돌아가기</button>`; 
+                    } 
+                },
+                
+                adv: a => { 
+                    if (pSt.type) { 
+                        clearInterval(pSt.tmr); pSt.type = false; 
+                        const pt = document.getElementById('pl-txt'); if(pt) pt.innerText = pSt.txt; 
+                        const pi = document.getElementById('pl-ind'); if (!a && pi) pi.classList.remove('hidden'); 
+                    } else if (pSt.wait) { 
+                        pSt.wait = false; 
+                        const cov = document.getElementById('pl-cov'); if(cov) cov.classList.add('hidden'); 
+                        const c = document.getElementById('pl-chc'); if(c) c.style.display = 'flex'; 
+                        const pi = document.getElementById('pl-ind'); if (pi) pi.classList.add('hidden'); 
+                    } 
+                },
+                
+                doCsv: () => { 
+                    const sc = cCols.filter(c => { const el = document.getElementById(`c-${c}`); return el && el.checked; }); 
+                    let s = '\uFEFF' + sc.join(',') + '\n'; 
+                    
+                    if(d.nodes) {
+                        s += d.nodes.map(n => sc.map(c => { 
+                            if (c === 'bg') return `"${n.visuals && n.visuals.background ? n.visuals.background : ''}"`; 
+                            if (c === 'char') return `"${n.visuals && n.visuals.character ? n.visuals.character : ''}"`; 
+                            if (c === 'choices') return `"` + (n.choices || []).map(ch => `${ch.text}:${ch.next_node}:${ch.condition || ''}`).join('|') + `"`; 
+                            
+                            // Safe escape for CSV newlines and quotes
+                            let val = (n[c] || '').toString();
+                            val = val.replace(/"/g, '""').replace(/\n/g, '\\n');
+                            return `"${val}"`; 
+                        }).join(',')).join('\n'); 
+                    }
+                    
+                    const a = document.createElement('a'); 
+                    a.href = URL.createObjectURL(new Blob([s], { type: 'text/csv' })); 
+                    a.download = 'story_nodes.csv'; a.click(); 
+                    window.nA.tgMod('n-csv'); 
+                },
+                
+                exp: () => { 
+                    const a = document.createElement('a'); 
+                    a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); 
+                    a.download = 'story_backup.json'; a.click(); 
+                }, 
+                
+                clr: () => { 
+                    window.showDlg("전체 초기화", "모든 노드와 맵 데이터를 삭제할까요?<br>이 작업은 되돌릴 수 없습니다.", true, () => { 
+                        d = { project_name: "Nvl", custom_node_types: [], nodes: [] }; 
+                        sId = null; window.nA.rAll(); 
+                    }); 
+                },
+                
+                imp: e => { 
+                    const f = e.target.files[0]; if (!f) return; 
+                    const r = new FileReader(), ic = f.name.toLowerCase().endsWith('.csv'); 
+                    
+                    r.onload = ev => { 
+                        try { 
+                            if (ic) { 
+                                const tx = ev.target.result, ls = tx.split('\n'), hs = ls[0].split(',').map(h => h.replace(/^"|"$/g, '').trim()); 
+                                
+                                if(!d.nodes) d.nodes = [];
+                                
+                                ls.slice(1).forEach(l => { 
+                                    if (!l.trim()) return; 
+                                    const vs = []; let iq = false, cv = ''; 
+                                    
+                                    for (let i = 0; i < l.length; i++) { 
+                                        const c = l[i]; 
+                                        if (c === '"') iq = !iq; 
+                                        else if (c === ',' && !iq) { vs.push(cv.trim()); cv = ''; } 
+                                        else cv += c; 
+                                    } 
+                                    vs.push(cv.trim()); 
+                                    
+                                    const id = vs[0]; if (!id) return; 
+                                    let tn = d.nodes.find(x => x.id === id); 
+                                    
+                                    if (!tn) { 
+                                        tn = { id, type: 'dialogue', choices: [], ui_x: 2000, ui_y: 2000 }; 
+                                        d.nodes.push(tn); 
+                                    } 
+                                    
+                                    hs.forEach((k, ci) => { 
+                                        const v = vs[ci]; if (v === undefined) return; 
+                                        if (k === 'type') tn.type = v || 'dialogue'; 
+                                        else if (k === 'bg') { tn.visuals = tn.visuals || {}; tn.visuals.background = v; } 
+                                        else if (k === 'char') { tn.visuals = tn.visuals || {}; tn.visuals.character = v; } 
+                                        else if (k === 'choices') { 
+                                            tn.choices = v.split('|').filter(x => x).map(x => { 
+                                                const p = x.split(':'); return { text: p[0], next_node: p[1], condition: p[2] || '' }; 
+                                            }); 
+                                        } 
+                                        else tn[k.toLowerCase()] = v.replace(/\\n/g, '\n'); 
+                                    }); 
+                                }); 
+                            } else { 
+                                d = JSON.parse(ev.target.result); 
+                            } 
+                            
+                            sId = null; window.nA.rAll(); 
+                            window.showDlg("완료", "데이터를 성공적으로 불러왔습니다."); 
+                        } catch(err) { 
+                            window.showDlg("실패", "파일 형식이 올바르지 않습니다.<br>" + err.message); 
+                        } 
+                    }; 
+                    r.readAsText(f); e.target.value = ''; 
+                }
+            };
+        })();
+
+        // ==============================================
+        // Initializer
+        // ==============================================
+        window.onload = () => {
+            const sTh = localStorage.getItem('wb_th') || 'light';
+            document.documentElement.setAttribute('data-theme', sTh);
+            if (sTh === 'dark') document.documentElement.classList.add('dark');
+            
+            const ic = document.getElementById('gb-theme-ic'); 
+            if (ic) ic.className = sTh === 'dark' ? 'ph ph-sun text-[22px]' : 'ph ph-moon text-[22px]';
+            
+            if (window.cA) window.cA.init(); 
+            if (window.nA) window.nA.init(); 
+            
+            window.swTab('char');
+        };
+    </script>
+</body>
+</html>
