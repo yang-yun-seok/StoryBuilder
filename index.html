@@ -462,13 +462,13 @@ img,video { max-width: 100%; height: auto; }
         /* CSS Variables */
         :root {
             --bg-base: #f2f4f6; --bg-surf: #ffffff; --txt-pri: #191f28; --txt-sec: #4e5968; --txt-mut: #8b95a1;
-            --bd-col: #e5e8eb; --pri: #3182f6; --dan: #f04452; --suc: #31ce66; --war: #f5b014;
+            --bd-col: #e5e8eb; --pri: #3182f6; --dan: #f04452; --suc: #31ce66; --war: #f5b014; --nv-edge: var(--txt-mut);
             --sh-pan: 0 10px 30px rgba(0,0,0,0.08); --sh-crd: 0 4px 12px rgba(0,0,0,0.05); --grd: rgba(0,0,0,0.05);
             --in-bg: #f2f4f6; --in-fbg: #ffffff; --hlp-bg: #f9fafb;
         }
         html.dark {
             --bg-base: #101318; --bg-surf: #1c212a; --txt-pri: #f9fafb; --txt-sec: #b0b8c1; --txt-mut: #6b7684;
-            --bd-col: #333d4b; --pri: #3182f6; --dan: #f04452; --suc: #31ce66; --war: #f5b014;
+            --bd-col: #333d4b; --pri: #3182f6; --dan: #f04452; --suc: #31ce66; --war: #f5b014; --nv-edge: var(--war);
             --sh-pan: 0 10px 30px rgba(0,0,0,0.5); --sh-crd: 0 4px 12px rgba(0,0,0,0.4); --grd: rgba(255,255,255,0.04);
             --in-bg: #2b313d; --in-fbg: #1c212a; --hlp-bg: #202632;
         }
@@ -540,8 +540,11 @@ img,video { max-width: 100%; height: auto; }
         .nv-card.orphan { border-color: var(--dan); border-style: dashed; }
         .nv-hd { padding: 14px 18px; border-radius: 20px 20px 0 0; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: grab; color: var(--txt-pri); font-size: 14px; border-bottom: 1px solid var(--bd-col); background: var(--hlp-bg); }
         .nv-bd { padding: 14px 18px; font-size: 13px; color: var(--txt-sec); flex: 1; display: flex; flex-direction: column; gap: 8px; background: var(--bg-surf); border-radius: 0 0 20px 20px; }
-        .node-dialogue-text { flex: 1; overflow-y: auto; margin-bottom: 8px; min-height: 20px; max-height: 120px; line-height: 1.5; }
-        .nv-chc { display: flex; justify-content: space-between; align-items: center; background: var(--in-bg); margin-top: 8px; padding: 10px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600; border: 1px solid transparent; transition: background 0.2s; position: relative;}
+        .node-dialogue-text { flex: 1; overflow-y: visible; margin-bottom: 8px; min-height: 20px; max-height: none; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+        .nv-speaker { flex: 1; min-width: 0; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+        .nv-event-text { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; line-height: 1.4; }
+        .nv-chc { display: flex; justify-content: space-between; align-items: flex-start; background: var(--in-bg); margin-top: 8px; padding: 10px 34px 10px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600; border: 1px solid transparent; transition: background 0.2s; position: relative; min-height: 38px; }
+        .nv-choice-label { flex: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.35; display: inline-flex; align-items: center; gap: 4px; }
         .nv-chc:hover { background: var(--bd-col); }
         
         .nv-pt { width: 14px; height: 14px; background: var(--bd-col); border-radius: 50%; cursor: crosshair; transition: all 0.2s; right: -7px; position: absolute; top: 50%; margin-top: -7px; box-shadow: 0 0 0 3px var(--bg-surf); }
@@ -565,6 +568,7 @@ img,video { max-width: 100%; height: auto; }
         }
         .nv-inline-input { font-weight: 700; }
         .nv-inline-ta { min-height: 90px; resize: vertical; font-weight: 500; }
+        .nv-ch-editor { resize: none; overflow: hidden; min-height: 36px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
         .nv-inline-input:focus, .nv-inline-ta:focus { border-color: var(--pri); box-shadow: 0 0 0 3px rgba(49,130,246,0.16); }
         .km-key-btn { width: 100%; min-width: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; justify-content: center; }
         .km-key-btn.cap { background: var(--pri); color: #fff; }
@@ -577,7 +581,27 @@ img,video { max-width: 100%; height: auto; }
             .km-row { flex-wrap: nowrap; align-items: center; }
             .km-key-btn { width: auto; min-width: 140px; }
         }
-        #pv-sc { overscroll-behavior: contain; min-height: 0; touch-action: pan-y; }
+        #pv-sc { overscroll-behavior: contain; min-height: 0; touch-action: pan-y; overflow-y: auto; overflow-x: hidden; }
+        #pv-dialog-wrap { height: auto; min-height: 58%; max-height: 86%; }
+        #pv-txt { margin: 0; display: block; width: 100%; line-height: 1.5; white-space: pre-wrap !important; overflow-wrap: anywhere; word-break: break-word; }
+        #pv-meta { overflow-wrap: anywhere; word-break: break-word; }
+        #pv-meta > div { overflow-wrap: anywhere; word-break: break-word; }
+        #n-app > header { overflow-x: auto; }
+        #n-app > header > div { min-width: max-content; }
+        #n-sec { min-width: 0; }
+        @media (max-width: 980px) {
+            #n-app > main { flex-direction: column; }
+            #n-sec { min-height: 54vh; }
+            #n-rp {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                height: 46vh;
+                border-left: none;
+                border-top: 1px solid var(--bd-col);
+            }
+            #n-rsz { display: none; }
+        }
         
         /* Animations */
         @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -832,7 +856,7 @@ svg[aria-hidden="true"] {
                         <div class="grd-bg"></div>
                         <svg id="n-ed-ly" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10">
                             <defs>
-                                <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--txt-mut)" /></marker>
+                                <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--nv-edge)" /></marker>
                                 <marker id="ah-act" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--pri)" /></marker>
                                 <marker id="ah-err" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--dan)" /></marker>
                             </defs>
@@ -861,7 +885,7 @@ svg[aria-hidden="true"] {
                     <div class="aspect-video bg-[#101318] relative rounded-2xl overflow-hidden shadow-inner flex flex-col justify-end border border-[var(--bd-col)]">
                         <div id="pv-bg" class="absolute inset-0 bg-cover bg-center opacity-80 transition-all duration-400 ease-out"></div>
                         <div id="pv-chr" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2/5 h-[85%] flex items-end justify-center transition-all duration-400 ease-out"></div>
-                        <div class="relative z-10 w-full p-3.5 h-[50%] flex flex-col justify-end">
+                        <div id="pv-dialog-wrap" class="relative z-10 w-full p-3.5 flex flex-col justify-end">
                             <div class="bg-white/95 dark:bg-[#1c212a]/95 text-[var(--txt-pri)] rounded-xl p-3 w-full h-full flex flex-col shadow-sm border border-white/20 backdrop-blur-md">
                                 <span id="pv-spk" class="font-extrabold text-[var(--pri)] text-[13px] mb-1"></span>
                                 <div id="pv-sc" class="flex-1 overflow-y-auto custom-scrollbar pr-1">
@@ -1403,6 +1427,7 @@ svg[aria-hidden="true"] {
             if (ic) ic.outerHTML = '<svg id="gb-theme-ic" class="text-[22px]" aria-hidden="true" focusable="false"><use href="#ph-' + (nTh === 'dark' ? 'sun' : 'moon') + '"/></svg>';
             
             if (window.cA) window.cA.drwBg();
+            if (window.nA && window.nA.updVw) window.nA.updVw(true);
         }
 
         window.showDlg = function(tit, msg, isCfm = false, onCfm = null) {
@@ -2403,6 +2428,37 @@ svg[aria-hidden="true"] {
                 const ox = Math.max(Math.abs(x2 - x1) * 0.6, 60);
                 return `M ${x1} ${y1} C ${x1 + ox} ${y1}, ${x2 - ox} ${y2}, ${x2} ${y2}`;
             }
+            function normHexColor(v) {
+                const raw = String(v || '').trim();
+                const m = raw.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+                if (!m) return '';
+                const h = m[1];
+                if (h.length === 3) return '#' + h.split('').map(ch => ch + ch).join('');
+                return '#' + h.toLowerCase();
+            }
+            function readableTextOn(bg) {
+                const hex = normHexColor(bg);
+                if (!hex) return 'var(--txt-pri)';
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+                return yiq >= 150 ? '#191f28' : '#f9fafb';
+            }
+            function nodeHeaderStyle(ct) {
+                const hex = normHexColor(ct && ct.color);
+                if (!hex) return '';
+                return `background:${hex};color:${readableTextOn(hex)};border-bottom:1px solid var(--bd-col);`;
+            }
+            function fitTa(el) {
+                if (!el) return;
+                const minH = 36;
+                const maxH = 220;
+                el.style.height = 'auto';
+                const next = Math.max(minH, Math.min(maxH, el.scrollHeight));
+                el.style.height = next + 'px';
+                el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+            }
 
             function eH(v) {
                 return String(v == null ? '' : v)
@@ -2478,7 +2534,7 @@ svg[aria-hidden="true"] {
                     d.nodes.forEach(n => {
                         const o = (d.nodes.length > 0 && n.id !== d.nodes[0].id) && !ref.has(n.id);
                         const ct = d.custom_node_types ? d.custom_node_types.find(t => t.id === n.type) : null;
-                        const hs = ct ? `background:${ct.color};color:#191f28;border-bottom:1px solid rgba(0,0,0,.1);` : '';
+                        const hs = ct ? nodeHeaderStyle(ct) : '';
                         const isInline = inEdId === n.id;
                         const dr = (isInline && inDraft) ? inDraft : { speaker: n.speaker || '', text: n.text || '', events: n.events || '', choices: clChoices(n.choices) };
                         
@@ -2492,7 +2548,7 @@ svg[aria-hidden="true"] {
                         if (isInline) {
                             h += `
                                 <div class="nv-hd shrink-0" style="${hs}">
-                                    <span class="truncate pr-2">인라인 편집</span>
+                                    <span class="nv-speaker pr-2">인라인 편집</span>
                                     <span class="text-[10px] bg-black/10 dark:bg-white/20 px-2 py-0.5 rounded font-bold">${eH(typLbl)}</span>
                                 </div>
                                 <div class="nv-bd">
@@ -2509,12 +2565,12 @@ svg[aria-hidden="true"] {
                         } else {
                             h += `
                                 <div class="nv-hd shrink-0" onmousedown="window.nA.sDrg(event,'${n.id}')" style="${hs}">
-                                    <span class="truncate pr-2">${eH(n.speaker || '이름 없음')}</span>
+                                    <span class="nv-speaker pr-2">${eH(n.speaker || '이름 없음')}</span>
                                     <span class="text-[10px] bg-black/10 dark:bg-white/20 px-2 py-0.5 rounded font-bold">${eH(typLbl)}</span>
                                 </div>
                                 <div class="nv-bd">
-                                    <div class="node-dialogue-text thin-scrollbar">${eH((n.text || '').substring(0, 80))}${(n.text || '').length > 80 ? '...' : ''}</div>
-                                    ${n.events ? `<div class="text-[10px] bg-[#e8f3ff] text-[#3182f6] dark:bg-[#3182f6]/20 px-2.5 py-1.5 mb-1 rounded-lg font-mono font-semibold truncate">⚡ ${eH(n.events)}</div>` : ''}
+                                    <div class="node-dialogue-text thin-scrollbar">${eH(n.text || '내용 없음')}</div>
+                                    ${n.events ? `<div class="nv-event-text text-[10px] bg-[#e8f3ff] text-[#3182f6] dark:bg-[#3182f6]/20 px-2.5 py-1.5 mb-1 rounded-lg font-mono font-semibold">⚡ ${eH(n.events)}</div>` : ''}
                                     <div class="space-y-1.5 mt-2">
                             `;
                             
@@ -2523,7 +2579,7 @@ svg[aria-hidden="true"] {
                                     const tE = c.next_node && d.nodes.some(x => x.id === c.next_node); 
                                     h += `
                                         <div class="nv-chc">
-                                            <span class="truncate ${!tE && c.next_node ? 'text-[var(--dan)]' : ''}">${eH(c.text || '빈 선택지')} ${c.condition ? '<svg class="-lock-key text-[#f5b014]" aria-hidden="true" focusable="false"><use href="#ph-lock-key"/></svg>' : ''}</span>
+                                            <span class="nv-choice-label ${!tE && c.next_node ? 'text-[var(--dan)]' : ''}">${eH(c.text || '빈 선택지')}${c.condition ? ' <svg class="-lock-key text-[#f5b014]" aria-hidden="true" focusable="false"><use href="#ph-lock-key"/></svg>' : ''}</span>
                                             <div class="nv-pt ${tE ? 'con' : (!tE && c.next_node ? 'err' : '')}" onmousedown="window.nA.sLk(event,'${n.id}',${i})" oncontextmenu="window.nA.dis(event,'${n.id}',${i})"></div>
                                         </div>
                                     `; 
@@ -2533,9 +2589,10 @@ svg[aria-hidden="true"] {
                             h += `</div></div><div class="resize-handle" onmousedown="window.nA.sRz(event,'${n.id}')"></div>`;
                         }
                         
+                        const cardMinH = Math.max(120, Number(n.ui_h) || 120);
                         const el = document.createElement('div'); 
                         el.className = `nv-card node-type-${n.type} ${sId === n.id ? 'sel' : ''} ${o ? 'orphan' : ''} ${isInline ? 'inline-edit' : ''}`; 
-                        el.style.cssText = `left:${n.ui_x}px;top:${n.ui_y}px;width:${n.ui_w || 260}px;height:${n.ui_h ? n.ui_h + 'px' : 'auto'};`; 
+                        el.style.cssText = `left:${n.ui_x}px;top:${n.ui_y}px;width:${n.ui_w || 260}px;min-height:${cardMinH}px;height:auto;`; 
                         el.dataset.id = n.id; 
                         el.innerHTML = h;
                         
@@ -2613,10 +2670,13 @@ svg[aria-hidden="true"] {
                                     hit.setAttribute("stroke-width", "30");
                                     hit.style.pointerEvents = "stroke"; // IMPORTANT FIX FOR DELETING LINES
                                     
+                                    const lineColor = !tn ? "var(--dan)" : (isSel ? "var(--pri)" : "var(--nv-edge)");
                                     const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
                                     p.setAttribute("d", gBz(s.x, s.y, e.x, e.y)); 
-                                    p.setAttribute("class", `connection-line c-ed-ph ${!tn ? 'stroke-[var(--dan)]' : (isSel ? 'stroke-[var(--pri)]' : 'stroke-[var(--txt-mut)]')} ${isSel ? 'sel' : ''}`); 
-                                    if(isSel) { p.style.stroke = "var(--pri)"; }
+                                    p.setAttribute("class", `connection-line c-ed-ph ${isSel ? 'sel' : ''}`); 
+                                    p.style.stroke = lineColor;
+                                    p.style.opacity = !tn ? "0.95" : (isSel ? "1" : "0.88");
+                                    if (!tn) p.setAttribute("stroke-dasharray", "7 5");
                                     p.setAttribute("marker-end", `url(#${!tn ? 'ah-err' : (isSel ? 'ah-act' : 'ah')})`); 
                                     
                                     g.appendChild(hit);
@@ -2633,7 +2693,8 @@ svg[aria-hidden="true"] {
                     if (!p) {
                         p = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
                         p.id = "t-lk"; 
-                        p.setAttribute("class", "connection-line c-ed-ph stroke-[var(--pri)]"); 
+                        p.setAttribute("class", "connection-line c-ed-ph sel");
+                        p.style.stroke = "var(--pri)";
                         p.setAttribute("marker-end", "url(#ah-act)"); 
                         fg.appendChild(p); 
                     }
@@ -2737,7 +2798,7 @@ svg[aria-hidden="true"] {
                     return `
                         <div class="bg-[var(--bg-base)] p-4 rounded-[14px] border border-[var(--bd-col)] relative group animate-pop" style="animation-delay:${i*0.05}s">
                             <button onclick="window.nA.rmCh(${i})" class="absolute top-4 right-4 text-[var(--dan)] opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--bg-surf)] rounded-md p-1 shadow-sm border border-[var(--bd-col)]"><svg class="-trash" aria-hidden="true" focusable="false"><use href="#ph-trash"/></svg></button>
-                            <input type="text" value="${eA(ch.text || '')}" oninput="window.nA.uChT(${i},this.value)" class="ts-in mb-3 py-2 px-1 bg-transparent border-b border-[var(--bd-col)] rounded-none focus:border-b-[var(--pri)] focus:shadow-none text-[14px] font-bold placeholder-[var(--txt-mut)]" placeholder="선택지 텍스트를 입력하세요">
+                            <textarea rows="1" oninput="window.nA.uChT(${i},this.value); window.nA.fitTa(this)" class="ts-in nv-ch-editor mb-3 py-2 px-1 bg-transparent border-b border-[var(--bd-col)] rounded-none focus:border-b-[var(--pri)] focus:shadow-none text-[14px] font-bold placeholder-[var(--txt-mut)]" placeholder="선택지 텍스트를 입력하세요">${eH(ch.text || '')}</textarea>
                             <div class="flex flex-col gap-2 mt-2">
                                 <div class="flex items-center gap-2">
                                     <svg class="-link text-[var(--txt-mut)]" aria-hidden="true" focusable="false"><use href="#ph-link"/></svg>
@@ -2755,6 +2816,9 @@ svg[aria-hidden="true"] {
                         </div>
                     `;
                 }).join('');
+                requestAnimationFrame(() => {
+                    c.querySelectorAll('.nv-ch-editor').forEach(fitTa);
+                });
             }
 
             function rPv() {
@@ -2818,8 +2882,9 @@ svg[aria-hidden="true"] {
                         chunks.push(`<div class="bg-[#e8f3ff] dark:bg-[#3182f6]/20 text-[#3182f6] rounded px-2 py-1 font-mono">⚡ ${eH(pvNode.events.trim())}</div>`);
                     }
                     if (pvNode.choices && pvNode.choices.length) {
-                        chunks.push(`<div class="font-semibold text-[var(--txt-pri)]">선택지 ${pvNode.choices.length}개</div>`);
-                        chunks.push(...pvNode.choices.map((ch, i) => `<div class="opacity-90">${i + 1}. ${eH(ch.text || '빈 선택지')}${ch.condition ? ` <span class="text-[#f5b014]">(if ${eH(ch.condition)})</span>` : ''}</div>`));
+                        const condCnt = pvNode.choices.filter(ch => ((ch && ch.condition) || '').trim()).length;
+                        chunks.push(`<div class="font-semibold text-[var(--txt-pri)]">선택지 존재 (${pvNode.choices.length}개)</div>`);
+                        if (condCnt > 0) chunks.push(`<div class="opacity-90">조건 분기 ${condCnt}개 포함</div>`);
                     }
                     meta.innerHTML = chunks.join('') || '<div class="opacity-70">추가 정보 없음</div>';
                 }
@@ -2886,7 +2951,11 @@ svg[aria-hidden="true"] {
                                     n.ui_w = Math.max(260, st.sw + (e.clientX - st.sx) / st.z); 
                                     n.ui_h = Math.max(120, st.sh + (e.clientY - st.sy) / st.z); 
                                     const el = document.querySelector(`.nv-card[data-id="${n.id}"]`); 
-                                    if (el) { el.style.width = `${n.ui_w}px`; el.style.height = `${n.ui_h}px`; } 
+                                    if (el) { 
+                                        el.style.width = `${n.ui_w}px`;
+                                        el.style.minHeight = `${n.ui_h}px`;
+                                        el.style.height = `auto`;
+                                    } 
                                     rLk(); 
                                 }
                             } else if (st.pRs) { 
@@ -3237,6 +3306,7 @@ svg[aria-hidden="true"] {
                 sPRs: (e) => { e.preventDefault(); st.pRs = true; st.sx = e.clientX; st.sw = els.rp.offsetWidth; const rsz = document.getElementById('n-rsz'); if(rsz) rsz.classList.add('active'); },
                 sDrg: (e, id) => { if (e.button !== 0 || inEdId === id) return; e.preventDefault(); window.nA.sel(id, 'node'); st.drg = id; st.sx = e.clientX; st.sy = e.clientY; }, 
                 sRz: (e, id) => { if (e.button !== 0 || inEdId === id) return; e.preventDefault(); e.stopPropagation(); const n = document.querySelector(`.nv-card[data-id="${id}"]`); if(n){ st.rsz = id; st.sx = e.clientX; st.sy = e.clientY; st.sw = n.offsetWidth; st.sh = n.offsetHeight; } },
+                fitTa: fitTa,
                 sLk: (e, id, idx) => { 
                     if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); 
                     startLinkFromChoice(id, idx);
@@ -3281,8 +3351,8 @@ svg[aria-hidden="true"] {
                     const el = document.querySelector(`.nv-card[data-id="${n.id}"]`); 
                     if (el) { 
                         const dTxt = el.querySelector('.node-dialogue-text');
-                        if(dTxt) dTxt.innerText = (n.text || '').substring(0, 80) + ((n.text || '').length > 80 ? '...' : ''); 
-                        const tSpn = el.querySelector('span.truncate');
+                        if(dTxt) dTxt.innerText = n.text || '내용 없음';
+                        const tSpn = el.querySelector('.nv-speaker');
                         if(tSpn) tSpn.innerText = n.speaker || '이름 없음'; 
                     } 
                     
@@ -3293,7 +3363,7 @@ svg[aria-hidden="true"] {
                 
                 addCh: () => { const n = d.nodes.find(x => x.id === sId); if (n) { if (!n.choices) n.choices = []; n.choices.push({ text: "새 선택지", next_node: "", condition: "" }); rCv(); renderInspectorChoices(n); sv(); } }, 
                 rmCh: i => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices) { n.choices.splice(i, 1); rCv(); renderInspectorChoices(n); sv(); } },
-                uChT: (i, v) => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices && n.choices[i]) { n.choices[i].text = v; const l = document.querySelector(`.nv-card[data-id="${n.id}"] .nv-chc:nth-child(${i + 1}) span`); if (l) l.innerHTML = `${eH(v || '빈 선택지')} ${n.choices[i].condition ? '<svg class="-lock-key text-[#f5b014]" aria-hidden="true" focusable="false"><use href="#ph-lock-key"/></svg>' : ''}`; sv(); } }, 
+                uChT: (i, v) => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices && n.choices[i]) { n.choices[i].text = v; const l = document.querySelector(`.nv-card[data-id="${n.id}"] .nv-chc:nth-child(${i + 1}) .nv-choice-label`); if (l) l.innerHTML = `${eH(v || '빈 선택지')}${n.choices[i].condition ? ' <svg class="-lock-key text-[#f5b014]" aria-hidden="true" focusable="false"><use href="#ph-lock-key"/></svg>' : ''}`; sv(); } }, 
                 uChC: (i, v) => { const n = d.nodes.find(x => x.id === sId); if (n && n.choices && n.choices[i]) { n.choices[i].condition = v; rCv(); renderInspectorChoices(n); rPv(); sv(); } },
                 uChN: (i, v) => {
                     const n = d.nodes.find(x => x.id === sId);
